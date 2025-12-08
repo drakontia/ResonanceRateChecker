@@ -92,8 +92,10 @@ export default function OverviewPage() {
   });
 
   const sortedItems = filteredItems.toSorted((a: any, b: any) => {
-    const aFav = favorites.has(a.goodsJp);
-    const bFav = favorites.has(b.goodsJp);
+    const aKey = `${a.stationId}-${a.goodsJp}`;
+    const bKey = `${b.stationId}-${b.goodsJp}`;
+    const aFav = favorites.has(aKey);
+    const bFav = favorites.has(bKey);
     if (aFav && !bFav) return -1;
     if (!aFav && bFav) return 1;
     return a.goodsJp.localeCompare(b.goodsJp);
@@ -103,13 +105,14 @@ export default function OverviewPage() {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedItems = sortedItems.slice(startIndex, startIndex + itemsPerPage);
 
-  const toggleFavorite = (goodsJp: string) => {
+  const toggleFavorite = (stationId: string, goodsJp: string) => {
+    const key = `${stationId}-${goodsJp}`;
     setFavorites(prev => {
       const newFavorites = new Set(prev);
-      if (newFavorites.has(goodsJp)) {
-        newFavorites.delete(goodsJp);
+      if (newFavorites.has(key)) {
+        newFavorites.delete(key);
       } else {
-        newFavorites.add(goodsJp);
+        newFavorites.add(key);
       }
       return newFavorites;
     });
@@ -128,7 +131,7 @@ export default function OverviewPage() {
       {/* Buy Items Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-6 px-4">
         {paginatedItems.map((item: any) => (
-          <Card key={`${item.stationId}-${item.goodsJp}`} isFavorite={favorites.has(item.goodsJp)} onToggleFavorite={() => toggleFavorite(item.goodsJp)}>
+          <Card key={`${item.stationId}-${item.goodsJp}`} isFavorite={favorites.has(`${item.stationId}-${item.goodsJp}`)} onToggleFavorite={() => toggleFavorite(item.stationId, item.goodsJp)}>
             <CardMetric 
               name={item.goodsJp} 
               price={item.price} 
