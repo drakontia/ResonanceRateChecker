@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { ArrowUp, ArrowDown } from "lucide-react";
 
-export default function Table({ data, columns, pageSize = 20 }) {
+export default function Table({ data, columns, pageSize = 20 }: { data: any[], columns: any[], pageSize?: number }) {
   const [sortKey, setSortKey] = useState("");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [page, setPage] = useState(1);
