@@ -14,7 +14,13 @@ export default function OverviewPage() {
   const [stations, setStations] = useState<any>(null);
   const [tradeData, setTradeData] = useState<Record<string, string>>({});
   const [cityData, setCityData] = useState<Record<string, string>>({});
-  const [favorites, setFavorites] = useState<Set<string>>(new Set());
+  const [favorites, setFavorites] = useState<Set<string>>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('favorites');
+      return saved ? new Set(JSON.parse(saved)) : new Set();
+    }
+    return new Set();
+  });
   const [fetchTime, setFetchTime] = useState<Date | null>(null);
   const [timeAgo, setTimeAgo] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -114,6 +120,7 @@ export default function OverviewPage() {
       } else {
         newFavorites.add(key);
       }
+      localStorage.setItem('favorites', JSON.stringify([...newFavorites]));
       return newFavorites;
     });
   };
