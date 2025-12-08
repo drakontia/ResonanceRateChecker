@@ -72,27 +72,18 @@ export default function OverviewPage() {
 
   if (!stations) return <div>Loading...</div>;
 
-  const groupedItems = (stations as any[]).flatMap((station: any) => 
-    station.buyItems.map((item: any) => ({
-      ...item,
-      stationId: station.stationId
-    }))
-  ).reduce((acc: any, item: any) => {
-    const goodsJp = tradeData[item.itemId] || item.itemId;
-    if (!acc[goodsJp]) {
-      acc[goodsJp] = [];
-    }
-    acc[goodsJp].push({ ...item, goodsJp });
-    return acc;
-  }, {});
+  const allItems = (stations as any[]).flatMap((station: any) => 
+    station.buyItems.map((item: any) => {
+      const goodsJp = tradeData[item.itemId] || item.itemId;
+      return {
+        ...item,
+        stationId: station.stationId,
+        goodsJp
+      };
+    })
+  );
 
-  const maxPriceItems = Object.entries(groupedItems).reduce((acc: any, [goodsJp, items]: [string, any]) => {
-    const maxItem = items.reduce((max: any, item: any) => item.price > max.price ? item : max);
-    acc[goodsJp] = maxItem;
-    return acc;
-  }, {});
-
-  const filteredItems = Object.values(maxPriceItems).filter((item: any) => {
+  const filteredItems = allItems.filter((item: any) => {
     return item.goodsJp.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
@@ -101,7 +92,7 @@ export default function OverviewPage() {
     const bFav = favorites.has(b.goodsJp);
     if (aFav && !bFav) return -1;
     if (!aFav && bFav) return 1;
-    return 0;
+    return a.goodsJp.localeCompare(b.goodsJp);
   });
 
   const toggleFavorite = (goodsJp: string) => {
@@ -129,7 +120,7 @@ export default function OverviewPage() {
       {/* Buy Items Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-6 px-4">
         {sortedItems.map((item: any) => (
-          <Card key={item.goodsJp} isFavorite={favorites.has(item.goodsJp)} onToggleFavorite={() => toggleFavorite(item.goodsJp)}>
+          <Card key={`${item.stationId}-${item.goodsJp}`} isFavorite={favorites.has(item.goodsJp)} onToggleFavorite={() => toggleFavorite(item.goodsJp)}>
             <CardMetric 
               name={item.goodsJp} 
               price={item.price} 
