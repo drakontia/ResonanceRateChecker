@@ -18,6 +18,8 @@ export default function OverviewPage() {
   const [fetchTime, setFetchTime] = useState<Date | null>(null);
   const [timeAgo, setTimeAgo] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const itemsPerPage = 50;
 
   useEffect(() => {
     fetch('/api/trade')
@@ -30,6 +32,8 @@ export default function OverviewPage() {
         return JSON.parse(text);
       })
       .then(result => {
+        console.log('API Response:', result);
+        console.log('First station buyItems:', result.stations[0]?.buyItems);
         setStations(result.stations);
         setFetchTime(new Date(result.fetchTime));
       })
@@ -95,6 +99,10 @@ export default function OverviewPage() {
     return a.goodsJp.localeCompare(b.goodsJp);
   });
 
+  const totalPages = Math.ceil(sortedItems.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedItems = sortedItems.slice(startIndex, startIndex + itemsPerPage);
+
   const toggleFavorite = (goodsJp: string) => {
     setFavorites(prev => {
       const newFavorites = new Set(prev);
@@ -119,7 +127,7 @@ export default function OverviewPage() {
 
       {/* Buy Items Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-6 px-4">
-        {sortedItems.map((item: any) => (
+        {paginatedItems.map((item: any) => (
           <Card key={`${item.stationId}-${item.goodsJp}`} isFavorite={favorites.has(item.goodsJp)} onToggleFavorite={() => toggleFavorite(item.goodsJp)}>
             <CardMetric 
               name={item.goodsJp} 
@@ -133,6 +141,27 @@ export default function OverviewPage() {
             />
           </Card>
         ))}
+      </div>
+
+      {/* Pagination */}
+      <div className="flex items-center justify-center gap-4 px-4">
+        <button
+          disabled={currentPage === 1}
+          onClick={() => setCurrentPage(p => p - 1)}
+          className="px-4 py-2 border rounded disabled:opacity-40 bg-white dark:bg-gray-800"
+        >
+          前へ
+        </button>
+        <span className="text-sm">
+          {currentPage} / {totalPages} ページ ({sortedItems.length}件)
+        </span>
+        <button
+          disabled={currentPage === totalPages}
+          onClick={() => setCurrentPage(p => p + 1)}
+          className="px-4 py-2 border rounded disabled:opacity-40 bg-white dark:bg-gray-800"
+        >
+          次へ
+        </button>
       </div>
       
       <Footer />
