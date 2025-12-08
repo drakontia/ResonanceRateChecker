@@ -26,7 +26,13 @@ export default function OverviewPage() {
   const [timeAgo, setTimeAgo] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [showFavoritesOnly, setShowFavoritesOnly] = useState<boolean>(false);
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('showFavoritesOnly');
+      return saved === 'true';
+    }
+    return false;
+  });
   const itemsPerPage = 50;
 
   useEffect(() => {
@@ -144,7 +150,10 @@ export default function OverviewPage() {
 
       {/* Favorites Filter */}
       <div className="flex items-center justify-center gap-3 px-4">
-        <Switch checked={showFavoritesOnly} onCheckedChange={setShowFavoritesOnly} />
+        <Switch checked={showFavoritesOnly} onCheckedChange={(checked) => {
+          setShowFavoritesOnly(checked);
+          localStorage.setItem('showFavoritesOnly', String(checked));
+        }} />
         <label className="text-sm cursor-pointer" onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}>
           お気に入りのみ表示
         </label>
