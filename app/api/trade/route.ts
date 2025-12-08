@@ -1,3 +1,4 @@
+import { revalidateTag } from 'next/cache';
 import { NextResponse } from 'next/server';
 
 export async function GET() {
@@ -75,4 +76,9 @@ export async function GET() {
     stations,
     fetchTime: fetchTime.toISOString()
   });
+}
+
+export async function POST() {
+  revalidateTag('trade', 'max');
+  return NextResponse.json({ revalidated: true });
 }

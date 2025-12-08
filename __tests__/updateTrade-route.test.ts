@@ -1,5 +1,4 @@
-import { POST } from '../app/api/updateTrade/route';
-import { GET } from '../app/api/trade/route';
+import { GET, POST } from '../app/api/trade/route';
 import { revalidateTag } from 'next/cache';
 
 jest.mock('next/cache', () => ({
