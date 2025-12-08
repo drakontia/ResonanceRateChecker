@@ -9,7 +9,7 @@ export default function SearchBar({
 }>) {
   return (
     <div className="mb-4 dark:bg-gray-800 bg-gray-300 rounded-lg shadow p-4">
-      <div className="flex gap-4 items-center">
+      <div className="flex gap-4 items-center justify-between">
         <div className="relative flex-1 max-w-md filter-dropdown-container">
           <input
             type="text"
@@ -23,7 +23,7 @@ export default function SearchBar({
           />
         </div>
         {timeAgo && (
-          <div className="text-sm text-gray-500 dark:text-gray-400">
+          <div className="text-sm text-gray-500 dark:text-gray-400 ml-auto">
             最終更新: {timeAgo}
           </div>
         )}
