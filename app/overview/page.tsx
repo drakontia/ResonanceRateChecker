@@ -9,6 +9,7 @@ import Navbar from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import SearchBar from "@/components/searchBar";
 import { ThemeToggle } from "@/components/themeToggle";
+import { Switch } from "@/components/ui/switch";
 
 export default function OverviewPage() {
   const [stations, setStations] = useState<any>(null);
@@ -25,6 +26,7 @@ export default function OverviewPage() {
   const [timeAgo, setTimeAgo] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState<boolean>(false);
   const itemsPerPage = 50;
 
   useEffect(() => {
@@ -94,7 +96,12 @@ export default function OverviewPage() {
   );
 
   const filteredItems = allItems.filter((item: any) => {
-    return item.goodsJp.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = item.goodsJp.toLowerCase().includes(searchQuery.toLowerCase());
+    if (showFavoritesOnly) {
+      const key = `${item.stationId}-${item.goodsJp}`;
+      return matchesSearch && favorites.has(key);
+    }
+    return matchesSearch;
   });
 
   const sortedItems = filteredItems.toSorted((a: any, b: any) => {
@@ -134,6 +141,14 @@ export default function OverviewPage() {
       </div>
       <Navbar />
       <SearchBar searchQuery={searchQuery} onSearchChange={setSearchQuery} timeAgo={timeAgo} />
+
+      {/* Favorites Filter */}
+      <div className="flex items-center justify-center gap-3 px-4">
+        <Switch checked={showFavoritesOnly} onCheckedChange={setShowFavoritesOnly} />
+        <label className="text-sm cursor-pointer" onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}>
+          お気に入りのみ表示
+        </label>
+      </div>
 
       {/* Buy Items Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-6 px-4">
