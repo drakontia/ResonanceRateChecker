@@ -21,7 +21,14 @@ export default function OverviewPage() {
 
   useEffect(() => {
     fetch('/api/trade')
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to fetch');
+        return res.text();
+      })
+      .then(text => {
+        if (!text) throw new Error('Empty response');
+        return JSON.parse(text);
+      })
       .then(result => {
         setStations(result.stations);
         setFetchTime(new Date(result.fetchTime));
