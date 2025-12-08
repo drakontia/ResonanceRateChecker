@@ -1,0 +1,14 @@
+name: Update trade data
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  update-trade-data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Request API to update trade data
+        run: |
+          curl -X POST https://resonance-rate-checker.vercel.app/api/trade

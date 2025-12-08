@@ -1,0 +1,25 @@
+import "./globals.css";
+import { ThemeProvider } from "next-themes";
+
+export const metadata = {
+  title: "レゾナンス取引所",
+};
+
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  return (
+    <html lang="ja" suppressHydrationWarning>
+      <body className="bg-gray-50">
+        <main className="px-8 py-10 mx-auto">
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+            storageKey="acme-theme">
+            {children}
+          </ThemeProvider>
+        </main>
+      </body>
+    </html>
+  );
+}
