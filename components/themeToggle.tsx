@@ -21,7 +21,7 @@ export const ThemeToggle: FC<ThemeToggleProps> = (props) => {
         }}
         className={cn(className, props.className)}
       >
-        <Sun aria-hidden="true" className="h-5 w-5" />
+        <Sun aria-hidden="true" className="h-8 w-8" />
       </button>
       <button
         onClick={() => {
@@ -29,7 +29,7 @@ export const ThemeToggle: FC<ThemeToggleProps> = (props) => {
         }}
         className={cn(className, props.className)}
       >
-        <Moon aria-hidden="true" className="h-5 w-5" />
+        <Moon aria-hidden="true" className="h-8 w-8" />
       </button>
       <button
         onClick={() => {
@@ -37,7 +37,7 @@ export const ThemeToggle: FC<ThemeToggleProps> = (props) => {
         }}
         className={cn(className, props.className)}
       >
-        <Monitor aria-hidden="true" className="h-5 w-5" />
+        <Monitor aria-hidden="true" className="h-8 w-8" />
       </button>
     </div>
   );
