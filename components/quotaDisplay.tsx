@@ -11,7 +11,7 @@ export default function QuotaDisplay({
 
   return (
     <div className="flex items-center gap-2">
-      {is_rise === 1 ?
+      {is_rise ?
         <TrendingUp className="text-green-400" sx={{ fontSize: 28 }} /> :
         <TrendingDown className="text-red-400" sx={{ fontSize: 28 }} />
       }
