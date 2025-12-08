@@ -4,10 +4,10 @@ import { NextResponse } from 'next/server';
 export async function GET() {
   const url = process.env.TRADE_API_URL || "https://dummy.com/trade/";
   
-  cacheTag('trade')
+  cacheTag('trade');
   const res = await fetch(url, {
     next: {
-      revalidate: 3600, // 1時間キャッシュ
+      revalidate: 600, // 10分キャッシュ
     },
   });
   

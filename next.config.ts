@@ -5,6 +5,9 @@ const nextConfig: NextConfig = {
     remotePatterns: [],
     unoptimized: false,
   },
+  experimental: {
+    cacheComponents: true,
+  },
 };
 
 export default nextConfig;
