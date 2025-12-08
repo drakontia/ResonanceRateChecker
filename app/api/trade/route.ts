@@ -46,19 +46,19 @@ export async function GET() {
     ([stationId, station]: [string, any]) => {
       const sellItems = Object.entries(station.sell_price || {}).map(
         ([itemId, d]) => ({
-          type: "sell",
+          type: "sell" as const,
           stationId,
           itemId,
-          ...d,
+          ...(d as object),
         })
       );
 
       const buyItems = Object.entries(station.buy_price || {}).map(
         ([itemId, d]) => ({
-          type: "buy",
+          type: "buy" as const,
           stationId,
           itemId,
-          ...d,
+          ...(d as object),
         })
       );
 
