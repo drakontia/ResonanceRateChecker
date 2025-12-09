@@ -1,5 +1,6 @@
 import type React from "react"
 import { Fade, Card, CardContent, Typography } from "@mui/material"
+import Link from "next/link"
 
 export function Title({ children }: { children?: React.ReactNode }) {
     return (
@@ -9,13 +10,15 @@ export function Title({ children }: { children?: React.ReactNode }) {
             <div style={{ position: 'absolute', top: '1rem', right: '1rem' }}>
                 {children}
             </div>
-            <Typography 
-                variant="h3" 
-                component="h1" 
-                sx={{ fontWeight: "bold", mb: 1, fontSize: { xs: '1.8rem', sm: '2.5rem', md: '3rem' } }}
-            >
-                🚀 レゾナンス：無限号列車 相場チェッカー
-            </Typography>
+            <Link href="/" style={{ textDecoration: 'none', color: 'inherit' }}>
+              <Typography 
+                  variant="h3" 
+                  component="h1" 
+                  sx={{ fontWeight: "bold", mb: 1, fontSize: { xs: '1.8rem', sm: '2.5rem', md: '3rem' }, cursor: 'pointer', '&:hover': { opacity: 0.9 } }}
+              >
+                  🚀 レゾナンス：無限号列車 相場チェッカー
+              </Typography>
+            </Link>
             <Typography 
                 variant="h6" 
                 sx={{ opacity: 0.9, fontSize: { xs: '0.9rem', sm: '1.25rem' } }}
