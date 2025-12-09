@@ -60,7 +60,8 @@ export function DataTable<TData, TValue>({
               {headerGroup.headers.map((header) => (
                 <TableHead
                   key={header.id}
-                  className={header.id === "goodsJp" ? "sticky left-0 bg-background min-w-[150px]" : "w-32"}
+                  className={header.id === "goodsJp" ? "sticky top-0 left-0 bg-background min-w-[150px] z-20 border-r" : "sticky top-0 w-32 bg-background z-10"}
+                  style={{ boxShadow: '0 2px 2px -1px rgba(0, 0, 0, 0.1)' }}
                 >
                   {header.isPlaceholder
                     ? null
