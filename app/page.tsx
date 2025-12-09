@@ -135,20 +135,26 @@ export default function Home() {
         <LastUpdateTime timeAgo={timeAgo} />
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-6 px-4">
-        {favoriteItems.map((item: any) => (
-          <Card key={`${item.stationId}-${item.goodsJp}`} isFavorite={true} onToggleFavorite={() => toggleFavorite(item.stationId, item.goodsJp)}>
-            <CardMetric
-              name={item.goodsJp}
-              price={item.price}
-              is_rise={item.is_rise}
-              quota={item.quota}
-              trend={item.trend}
-              imageUrl={`/images/items/${item.goodsJp}.png`}
-              stationName={cityData[item.stationId] || item.stationId}
-              is_rare={item.is_rare}
-            />
-          </Card>
-        ))}
+        {favoriteItems.length === 0 ? (
+          <div className="col-span-full text-center py-12 text-gray-500 dark:text-gray-400">
+            商品一覧ページでお気に入りを選択すると表示されます
+          </div>
+        ) : (
+          favoriteItems.map((item: any) => (
+            <Card key={`${item.stationId}-${item.goodsJp}`} isFavorite={true} onToggleFavorite={() => toggleFavorite(item.stationId, item.goodsJp)}>
+              <CardMetric
+                name={item.goodsJp}
+                price={item.price}
+                is_rise={item.is_rise}
+                quota={item.quota}
+                trend={item.trend}
+                imageUrl={`/images/items/${item.goodsJp}.png`}
+                stationName={cityData[item.stationId] || item.stationId}
+                is_rare={item.is_rare}
+              />
+            </Card>
+          ))
+        )}
       </div>
 
       <Footer />
