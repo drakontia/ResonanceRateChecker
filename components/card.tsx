@@ -9,7 +9,7 @@ interface CardProps {
 
 export default function Card({ children, isFavorite, onToggleFavorite }: CardProps) {
   return (
-    <div className="relative h-48 bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-600 border shadow-sm rounded-xl p-8 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
+    <div className="relative h-48 bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-600 border shadow-sm rounded-xl p-4 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
       <Toggle 
         value="star"
         aria-label="Toggle star"

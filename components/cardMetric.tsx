@@ -37,37 +37,50 @@ export default function CardMetric({
   }).join('/');
 
   return (
-    <div className="flex gap-4 h-full">
-      {/* 左半分: 画像 */}
-      <div className="flex-1 flex items-center justify-center relative">
-        {!imageError ? (
-          <>
-            <Image
-              src={encodedImageUrl}
-              alt={name}
-              width={100}
-              height={100}
-              className="w-full h-full object-contain"
-              onError={() => setImageError(true)}
-            />
-            {is_rare === 1 && (
-              <Image src="/images/item_rare.png" alt="rare" width={100} height={100} className="absolute inset-0 w-full h-full object-contain" onError={() => {}} />
-            )}
-          </>
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-700">
-            <span className="text-xs text-gray-500 dark:text-gray-400">No Image</span>
-          </div>
-        )}
+    <div className="flex flex-col h-full">
+      {/* 上部: 商品名 */}
+      <div className="mb-2">
+        <ItemName name={name} />
       </div>
 
-      {/* 右半分: 情報 */}
-      <div className="flex-1 flex flex-col justify-center space-y-2">
-        <ItemName name={name} trend={trend} />
-        <QuotaDisplay is_rise={is_rise} quota={quota} />
+      {/* 下部: 画像と情報 */}
+      <div className="flex gap-4 flex-1">
+        {/* 左半分: 画像 */}
+        <div className="flex-1 flex items-center justify-center relative">
+          {!imageError ? (
+            <>
+              <Image
+                src={encodedImageUrl}
+                alt={name}
+                width={100}
+                height={100}
+                className="w-full h-full object-contain"
+                onError={() => setImageError(true)}
+              />
+              {is_rare === 1 && (
+                <Image 
+                  src="/images/weekly_bonus.webp" 
+                  alt="weekly bonus" 
+                  width={100} 
+                  height={100} 
+                  className="absolute inset-0 w-full h-full object-contain pointer-events-none" 
+                  priority
+                />
+              )}
+            </>
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-700">
+              <span className="text-xs text-gray-500 dark:text-gray-400">No Image</span>
+            </div>
+          )}
+        </div>
 
-        <PriceDisplay price={price} />
-        <StationName stationName={stationName} />
+        {/* 右半分: 情報 */}
+        <div className="flex-1 flex flex-col justify-center space-y-2">
+          <QuotaDisplay is_rise={is_rise} quota={quota} />
+          <PriceDisplay price={price} />
+          <StationName stationName={stationName} />
+        </div>
       </div>
     </div>
   );
