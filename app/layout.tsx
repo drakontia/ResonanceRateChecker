@@ -2,7 +2,7 @@ import "./globals.css";
 import { ThemeProvider } from "next-themes";
 
 export const metadata = {
-  title: "レゾナンス取引所",
+  title: "レゾナンス：無限号列車 相場チェッカー",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
