@@ -9,7 +9,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="ja" suppressHydrationWarning>
       <body className="bg-gray-50">
-        <main className="px-8 py-10 mx-auto">
+        <main className="mx-auto">
           <ThemeProvider
             attribute="class"
             defaultTheme="system"
