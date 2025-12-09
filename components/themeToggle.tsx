@@ -31,14 +31,6 @@ export const ThemeToggle: FC<ThemeToggleProps> = (props) => {
       >
         <Moon aria-hidden="true" className="h-8 w-8" />
       </button>
-      <button
-        onClick={() => {
-          setTheme("system");
-        }}
-        className={cn(className, props.className)}
-      >
-        <Monitor aria-hidden="true" className="h-8 w-8" />
-      </button>
     </div>
   );
 };
