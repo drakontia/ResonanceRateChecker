@@ -1,11 +1,14 @@
 import type React from "react"
 import { Fade, Card, CardContent, Typography } from "@mui/material"
 
-export function Title() {
+export function Title({ children }: { children?: React.ReactNode }) {
     return (
         <Fade in timeout={800}>
-        <Card sx={{ mb: 4, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white' }}>
+        <Card sx={{ mb: 4, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', position: 'relative' }}>
             <CardContent sx={{ textAlign: 'center', py: { xs: 2, md: 3 } }}>
+            <div style={{ position: 'absolute', top: '1rem', right: '1rem' }}>
+                {children}
+            </div>
             <Typography 
                 variant="h3" 
                 component="h1" 

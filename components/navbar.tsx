@@ -1,18 +1,36 @@
+"use client"
+
 import Link from "next/link";
-import { LayoutDashboard, Tag } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile"
+import {
+  NavigationMenu,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+} from "@/components/ui/navigation-menu"
 
 export default function Navbar() {
-  return (
-    <nav className="mb-6 border-b border-gray-700">
-      <div className="flex justify-left items-center text-2xl">
-        <Link href="/overview" className="flex items-center gap-2 px-4 py-2 font-medium border-b-2 transition-colors border-blue-500 text-blue-400 dark:text-white dark:hover:text-gray-200">
-          <LayoutDashboard size={18} /> Overview
-        </Link>
+  const isMobile = useIsMobile()
 
-        <Link href="/prices" className="flex items-center gap-2 px-4 py-2 font-medium border-b-2 transition-colors border-transparent text-gray-400 hover:text-gray-200 dark:text-white dark:hover:text-gray-200">
-          <Tag size={18} /> Prices
-        </Link>
-      </div>
-    </nav>
-  );
+  return (
+    <NavigationMenu viewport={isMobile} className="mb-4">
+      <NavigationMenuList className="flex-wrap">
+        <NavigationMenuItem>
+          <NavigationMenuLink>
+            <Link href="/" className="px-4 py-2 font-medium border-b-2 transition-colors border-blue-500 text-blue-400">ホーム</Link>
+          </NavigationMenuLink>
+        </NavigationMenuItem>
+                <NavigationMenuItem>
+          <NavigationMenuLink>
+            <Link href="/overview" className="px-4 py-2 font-medium border-b-2 transition-colors border-blue-500 text-blue-400">商品一覧</Link>
+          </NavigationMenuLink>
+        </NavigationMenuItem>
+        <NavigationMenuItem>
+          <NavigationMenuLink>
+            <Link href="/prices" className="px-4 py-2 font-medium border-b-2 transition-colors border-blue-500 text-blue-400">価格表</Link>
+          </NavigationMenuLink>
+        </NavigationMenuItem>
+      </NavigationMenuList>
+    </NavigationMenu>
+  )
 }

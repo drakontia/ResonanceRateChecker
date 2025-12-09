@@ -81,3 +81,14 @@ export interface GroupedTrade {
   goods_jp: string;
   trades: Trade[];
 }
+
+export interface StationWithItems extends Station {
+  stationId: string;
+  buyItems: any[];
+  sellItems: any[];
+}
+
+export interface PriceTableRow {
+  goodsJp: string;
+  [stationId: string]: string | number;
+}
