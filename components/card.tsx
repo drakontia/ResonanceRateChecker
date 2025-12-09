@@ -1,12 +1,25 @@
-export default function Card({ children, isFavorite, onToggleFavorite, darkMode }: { children: React.ReactNode; isFavorite?: boolean; onToggleFavorite?: () => void; darkMode?: boolean }) {
+import { Toggle } from "@/components/ui/toggle";
+import { StarIcon } from "lucide-react";
+
+interface CardProps {
+  readonly children: React.ReactNode;
+  readonly isFavorite?: boolean;
+  readonly onToggleFavorite?: () => void;
+}
+
+export default function Card({ children, isFavorite, onToggleFavorite }: CardProps) {
   return (
     <div className="relative h-48 bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-600 border shadow-sm rounded-xl p-8 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
-      <span 
-        className={`absolute top-2 right-2 text-xl cursor-pointer transition-colors ${isFavorite ? 'text-yellow-400' : 'text-gray-600'}`}
-        onClick={onToggleFavorite}
+      <Toggle 
+        value="star"
+        aria-label="Toggle star"
+        pressed={isFavorite}
+        onPressedChange={onToggleFavorite}
+        className="absolute top-2 right-2　data-[state=on]:bg-transparent data-[state=on]:*:[svg]:fill-yellow-500 data-[state=on]:*:[svg]:stroke-yellow-500"
+        size="sm"
       >
-        ★
-      </span>
+        <StarIcon />
+      </Toggle>
       {children}
     </div>
   );
