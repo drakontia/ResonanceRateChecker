@@ -76,13 +76,13 @@ export default function OverviewPage() {
 
   useEffect(() => {
     if (!fetchTime) return;
-    
+
     const updateTimeAgo = () => {
       const now = new Date();
       const diff = Math.floor((now.getTime() - fetchTime.getTime()) / 1000 / 60);
       setTimeAgo(diff === 0 ? "ただ今" : `${diff}分前`);
     };
-    
+
     updateTimeAgo();
     const interval = setInterval(updateTimeAgo, 60000);
     return () => clearInterval(interval);
@@ -90,7 +90,7 @@ export default function OverviewPage() {
 
   if (!stations) return <div>Loading...</div>;
 
-  const allItems = (stations as any[]).flatMap((station: any) => 
+  const allItems = (stations as any[]).flatMap((station: any) =>
     station.buyItems.map((item: any) => {
       const goodsJp = tradeData[item.itemId] || item.itemId;
       return {
@@ -139,12 +139,10 @@ export default function OverviewPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-    <div className="space-y-12">
-      <div className="relative">
-        <Title />
+    <div className="min-h-screen p-8 bg-gray-50 dark:bg-gray-900">
+      <Title>
         <ThemeToggle />
-      </div>
+      </Title>
       <Navbar />
       <SearchBar searchQuery={searchQuery} onSearchChange={setSearchQuery} timeAgo={timeAgo} />
 
@@ -163,9 +161,9 @@ export default function OverviewPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-6 px-4">
         {paginatedItems.map((item: any) => (
           <Card key={`${item.stationId}-${item.goodsJp}`} isFavorite={favorites.has(`${item.stationId}-${item.goodsJp}`)} onToggleFavorite={() => toggleFavorite(item.stationId, item.goodsJp)}>
-            <CardMetric 
-              name={item.goodsJp} 
-              price={item.price} 
+            <CardMetric
+              name={item.goodsJp}
+              price={item.price}
               is_rise={item.is_rise}
               quota={item.quota}
               trend={item.trend}
@@ -197,9 +195,8 @@ export default function OverviewPage() {
           次へ
         </button>
       </div>
-      
+
       <Footer />
-    </div>
     </div>
   );
 }
