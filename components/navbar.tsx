@@ -13,7 +13,7 @@ export default function Navbar() {
   const isMobile = useIsMobile()
 
   return (
-    <NavigationMenu viewport={isMobile} className="mb-4">
+    <NavigationMenu className="mb-4">
       <NavigationMenuList className="flex-wrap">
         <NavigationMenuItem>
           <NavigationMenuLink asChild>
