@@ -7,6 +7,9 @@ import { Title } from "@/components/title";
 import Navbar from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import SearchBar from "@/components/searchBar";
+import StationSelector from "@/components/stationSelector";
+import SortSelector from "@/components/sortSelector";
+import LastUpdateTime from "@/components/lastUpdateTime";
 import { ThemeToggle } from "@/components/themeToggle";
 
 export default function Home() {
@@ -23,6 +26,8 @@ export default function Home() {
   const [fetchTime, setFetchTime] = useState<Date | null>(null);
   const [timeAgo, setTimeAgo] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [selectedStation, setSelectedStation] = useState<string | null>(null);
+  const [sortOrder, setSortOrder] = useState<string>('default');
 
   useEffect(() => {
     fetch('/api/trade')
@@ -68,6 +73,8 @@ export default function Home() {
 
   if (!stations) return <div>Loading...</div>;
 
+  const stationIds = Array.from(new Set((stations as any[]).map((s: any) => s.stationId)));
+
   const allItems = (stations as any[]).flatMap((station: any) =>
     station.buyItems.map((item: any) => ({
       ...item,
@@ -102,8 +109,31 @@ export default function Home() {
         <ThemeToggle />
       </Title>
       <Navbar />
-      <SearchBar searchQuery={searchQuery} onSearchChange={setSearchQuery} timeAgo={timeAgo} />
+      <div className="flex flex-col md:flex-row gap-4 md:items-center md:justify-between mb-6 py-4">
 
+        <SearchBar
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+        />
+        <StationSelector
+          stationIds={stationIds}
+          cityData={cityData}
+          selectedStation={selectedStation}
+          onStationSelect={(stationId) => {
+            setSelectedStation(stationId);
+            if (stationId) {
+              localStorage.setItem('selectedStation', stationId);
+            } else {
+              localStorage.removeItem('selectedStation');
+            }
+          }}
+        />
+        <SortSelector
+          sortOrder={sortOrder}
+          onSortChange={setSortOrder}
+        />
+        <LastUpdateTime timeAgo={timeAgo} />
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-6 px-4">
         {favoriteItems.map((item: any) => (
           <Card key={`${item.stationId}-${item.goodsJp}`} isFavorite={true} onToggleFavorite={() => toggleFavorite(item.stationId, item.goodsJp)}>

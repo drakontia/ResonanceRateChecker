@@ -6,10 +6,13 @@ import Navbar from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { ThemeToggle } from "@/components/themeToggle";
 import PriceTableFilter from "@/components/priceTableFilter";
+import StationDropdown from "@/components/stationDropdown";
+import LastUpdateTime from "@/components/lastUpdateTime";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
 import { StationWithItems, PriceTableRow } from "@/types/trade";
+import { useTimeAgo } from "@/hooks/useTimeAgo";
 
 export default function PricesPage() {
   const [items, setItems] = useState<StationWithItems[]>([]);
@@ -19,12 +22,14 @@ export default function PricesPage() {
   const [goodsPriceMap, setGoodsPriceMap] = useState<Record<string, Record<string, number>>>({});
   const [stationIds, setStationIds] = useState<string[]>([]);
   const [visibleStations, setVisibleStations] = useState<Set<string>>(new Set());
+  const [fetchTime, setFetchTime] = useState<Date | null>(null);
 
   useEffect(() => {
     fetch('/api/trade')
       .then(res => res.json())
       .then(result => {
         setItems(result.stations);
+        setFetchTime(new Date(result.fetchTime));
       })
       .catch(console.error);
     fetch('/db/trade_db.json')
@@ -139,7 +144,7 @@ export default function PricesPage() {
     });
   };
 
-
+  const timeAgo = useTimeAgo(fetchTime);
 
   return (
     <div className="min-h-screen p-8 bg-gray-50 dark:bg-gray-900">
@@ -148,14 +153,19 @@ export default function PricesPage() {
       </Title>
       <Navbar />
 
-      <PriceTableFilter
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        stationIds={stationIds}
-        cityData={cityData}
-        visibleStations={visibleStations}
-        onStationToggle={toggleStation}
-      />
+      <div className="flex flex-col md:flex-row gap-4 md:items-center py-4">
+        <PriceTableFilter
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+        />
+        <StationDropdown
+          stationIds={stationIds}
+          cityData={cityData}
+          visibleStations={visibleStations}
+          onStationToggle={toggleStation}
+        />
+        <LastUpdateTime timeAgo={timeAgo} />
+      </div>
 
       <DataTable columns={columns} data={tableData} searchQuery={searchQuery} />
 

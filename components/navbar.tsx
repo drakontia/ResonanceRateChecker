@@ -16,17 +16,17 @@ export default function Navbar() {
     <NavigationMenu viewport={isMobile} className="mb-4">
       <NavigationMenuList className="flex-wrap">
         <NavigationMenuItem>
-          <NavigationMenuLink>
+          <NavigationMenuLink asChild>
             <Link href="/" className="px-4 py-2 font-medium border-b-2 transition-colors border-blue-500 text-blue-400">ホーム</Link>
           </NavigationMenuLink>
         </NavigationMenuItem>
                 <NavigationMenuItem>
-          <NavigationMenuLink>
+          <NavigationMenuLink asChild>
             <Link href="/overview" className="px-4 py-2 font-medium border-b-2 transition-colors border-blue-500 text-blue-400">商品一覧</Link>
           </NavigationMenuLink>
         </NavigationMenuItem>
         <NavigationMenuItem>
-          <NavigationMenuLink>
+          <NavigationMenuLink asChild>
             <Link href="/prices" className="px-4 py-2 font-medium border-b-2 transition-colors border-blue-500 text-blue-400">価格表</Link>
           </NavigationMenuLink>
         </NavigationMenuItem>

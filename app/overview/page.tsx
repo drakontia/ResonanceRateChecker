@@ -8,8 +8,13 @@ import { Title } from "@/components/title";
 import Navbar from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import SearchBar from "@/components/searchBar";
+import StationSelector from "@/components/stationSelector";
+import SortSelector from "@/components/sortSelector";
+import LastUpdateTime from "@/components/lastUpdateTime";
 import { ThemeToggle } from "@/components/themeToggle";
-import { Switch } from "@/components/ui/switch";
+import { useFilteredAndSortedItems } from "@/hooks/useFilteredAndSortedItems";
+import { useTimeAgo } from "@/hooks/useTimeAgo";
+
 
 export default function OverviewPage() {
   const [stations, setStations] = useState<any>(null);
@@ -23,17 +28,14 @@ export default function OverviewPage() {
     return new Set();
   });
   const [fetchTime, setFetchTime] = useState<Date | null>(null);
-  const [timeAgo, setTimeAgo] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const [showFavoritesOnly, setShowFavoritesOnly] = useState<boolean>(() => {
+  const [selectedStation, setSelectedStation] = useState<string | null>(() => {
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('showFavoritesOnly');
-      return saved === 'true';
+      return localStorage.getItem('selectedStation');
     }
-    return false;
+    return null;
   });
-  const itemsPerPage = 50;
+  const [sortOrder, setSortOrder] = useState<string>('default');
 
   useEffect(() => {
     fetch('/api/trade')
@@ -74,55 +76,36 @@ export default function OverviewPage() {
       .catch(console.error);
   }, []);
 
-  useEffect(() => {
-    if (!fetchTime) return;
+  const timeAgo = useTimeAgo(fetchTime);
 
-    const updateTimeAgo = () => {
-      const now = new Date();
-      const diff = Math.floor((now.getTime() - fetchTime.getTime()) / 1000 / 60);
-      setTimeAgo(diff === 0 ? "ただ今" : `${diff}分前`);
-    };
+  const stationIds = stations ? Array.from(new Set((stations as any[]).map((s: any) => s.stationId))) : [];
 
-    updateTimeAgo();
-    const interval = setInterval(updateTimeAgo, 60000);
-    return () => clearInterval(interval);
-  }, [fetchTime]);
+  const itemsByGoods: Record<string, any> = {};
 
-  if (!stations) return <div>Loading...</div>;
+  if (stations) {
+    (stations as any[]).forEach((station: any) => {
+      if (selectedStation && station.stationId !== selectedStation) return;
 
-  const allItems = (stations as any[]).flatMap((station: any) =>
-    station.buyItems.map((item: any) => {
-      const goodsJp = tradeData[item.itemId] || item.itemId;
-      return {
-        ...item,
-        stationId: station.stationId,
-        goodsJp
-      };
-    })
-  );
+      station.buyItems.forEach((item: any) => {
+        const goodsJp = tradeData[item.itemId];
+        if (!goodsJp) return;
 
-  const filteredItems = allItems.filter((item: any) => {
-    const matchesSearch = item.goodsJp.toLowerCase().includes(searchQuery.toLowerCase());
-    if (showFavoritesOnly) {
-      const key = `${item.stationId}-${item.goodsJp}`;
-      return matchesSearch && favorites.has(key);
-    }
-    return matchesSearch;
-  });
+        if (!itemsByGoods[goodsJp] || itemsByGoods[goodsJp].price < item.price) {
+          itemsByGoods[goodsJp] = {
+            ...item,
+            stationId: station.stationId,
+            goodsJp
+          };
+        }
+      });
+    });
+  }
 
-  const sortedItems = filteredItems.toSorted((a: any, b: any) => {
-    const aKey = `${a.stationId}-${a.goodsJp}`;
-    const bKey = `${b.stationId}-${b.goodsJp}`;
-    const aFav = favorites.has(aKey);
-    const bFav = favorites.has(bKey);
-    if (aFav && !bFav) return -1;
-    if (!aFav && bFav) return 1;
-    return a.goodsJp.localeCompare(b.goodsJp);
-  });
+  const allItems = Object.values(itemsByGoods);
 
-  const totalPages = Math.ceil(sortedItems.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedItems = sortedItems.slice(startIndex, startIndex + itemsPerPage);
+  const sortedItems = useFilteredAndSortedItems(allItems, searchQuery, sortOrder, favorites);
+
+  if (!stations || Object.keys(tradeData).length === 0) return <div>Loading...</div>;
 
   const toggleFavorite = (stationId: string, goodsJp: string) => {
     const key = `${stationId}-${goodsJp}`;
@@ -144,22 +127,34 @@ export default function OverviewPage() {
         <ThemeToggle />
       </Title>
       <Navbar />
-      <SearchBar searchQuery={searchQuery} onSearchChange={setSearchQuery} timeAgo={timeAgo} />
-
-      {/* Favorites Filter */}
-      <div className="flex items-center justify-center gap-3 px-4">
-        <Switch checked={showFavoritesOnly} onCheckedChange={(checked) => {
-          setShowFavoritesOnly(checked);
-          localStorage.setItem('showFavoritesOnly', String(checked));
-        }} />
-        <label className="text-sm cursor-pointer" onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}>
-          お気に入りのみ表示
-        </label>
+      <div className="flex flex-col md:flex-row gap-4 md:items-center md:justify-between mb-6 py-4">
+        <SearchBar
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+        />
+        <StationSelector
+          stationIds={stationIds}
+          cityData={cityData}
+          selectedStation={selectedStation}
+          onStationSelect={(stationId) => {
+            setSelectedStation(stationId);
+            if (stationId) {
+              localStorage.setItem('selectedStation', stationId);
+            } else {
+              localStorage.removeItem('selectedStation');
+            }
+          }}
+        />
+        <SortSelector
+          sortOrder={sortOrder}
+          onSortChange={setSortOrder}
+        />
+        <LastUpdateTime timeAgo={timeAgo} />
       </div>
 
       {/* Buy Items Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-6 px-4">
-        {paginatedItems.map((item: any) => (
+        {sortedItems.map((item: any) => (
           <Card key={`${item.stationId}-${item.goodsJp}`} isFavorite={favorites.has(`${item.stationId}-${item.goodsJp}`)} onToggleFavorite={() => toggleFavorite(item.stationId, item.goodsJp)}>
             <CardMetric
               name={item.goodsJp}
@@ -173,27 +168,6 @@ export default function OverviewPage() {
             />
           </Card>
         ))}
-      </div>
-
-      {/* Pagination */}
-      <div className="flex items-center justify-center gap-4 px-4">
-        <button
-          disabled={currentPage === 1}
-          onClick={() => setCurrentPage(p => p - 1)}
-          className="px-4 py-2 border rounded disabled:opacity-40 bg-white dark:bg-gray-800"
-        >
-          前へ
-        </button>
-        <span className="text-sm">
-          {currentPage} / {totalPages} ページ ({sortedItems.length}件)
-        </span>
-        <button
-          disabled={currentPage === totalPages}
-          onClick={() => setCurrentPage(p => p + 1)}
-          className="px-4 py-2 border rounded disabled:opacity-40 bg-white dark:bg-gray-800"
-        >
-          次へ
-        </button>
       </div>
 
       <Footer />

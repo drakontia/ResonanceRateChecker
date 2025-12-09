@@ -1,30 +1,31 @@
 import { Input } from "@/components/ui/input";
+import { CircleX } from "lucide-react";
 
 export default function SearchBar({
   searchQuery,
   onSearchChange,
-  timeAgo,
 }: Readonly<{
   searchQuery: string;
   onSearchChange: (value: string) => void;
-  timeAgo?: string;
 }>) {
   return (
-    <div className="flex gap-4 items-center justify-between mb-6 py-4">
-      <div className="relative flex-1 max-w-md filter-dropdown-container">
-        <Input
-          type="text"
-          placeholder="商品を検索..."
-          value={searchQuery}
-          onChange={(e) => onSearchChange(e.target.value)}
-          onFocus={(e) => e.target.style.borderColor = '#a855f7'}
-          onBlur={(e) => e.target.style.borderColor = '#9ca3af'}
-        />
-      </div>
-      {timeAgo && (
-        <div className="text-sm text-gray-500 dark:text-gray-400 ml-auto">
-          最終更新: {timeAgo}
-        </div>
+    <div className="relative flex-1 max-w-md filter-dropdown-container">
+      <Input
+        type="text"
+        placeholder="商品を検索..."
+        value={searchQuery}
+        onChange={(e) => onSearchChange(e.target.value)}
+        onFocus={(e) => e.target.style.borderColor = '#a855f7'}
+        onBlur={(e) => e.target.style.borderColor = '#9ca3af'}
+        className="pr-8"
+      />
+      {searchQuery && (
+        <button
+          onClick={() => onSearchChange("")}
+          className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+        >
+          <CircleX size={18} />
+        </button>
       )}
     </div>
   );
