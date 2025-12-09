@@ -1,8 +1,10 @@
 import type React from "react"
 import { Fade, Card, CardContent, Typography } from "@mui/material"
-import { Link } from "lucide-react"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 export function Title({ children }: { children?: React.ReactNode }) {
+    const isMobile = useIsMobile();
+    
     return (
         <Fade in timeout={800}>
         <Card sx={{ mb: 4, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', position: 'relative' }}>
@@ -15,7 +17,7 @@ export function Title({ children }: { children?: React.ReactNode }) {
                 component="h1" 
                 sx={{ fontWeight: "bold", mb: 1, fontSize: { xs: '1.8rem', sm: '2.5rem', md: '3rem' } }}
             >
-                🚀 レゾナンス：無限号列車 相場チェッカー
+                {isMobile ? '相場チェッカー' : '🚀 レゾナンス：無限号列車 相場チェッカー'}
             </Typography>
             <Typography 
                 variant="h6" 
