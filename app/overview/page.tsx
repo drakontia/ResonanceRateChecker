@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 
-import Card from "@/components/card";
-import CardMetric from "@/components/cardMetric";
+import { CardGrid } from "@/components/cardGrid";
 import { Title } from "@/components/title";
 import Navbar from "@/components/navbar";
 import { Footer } from "@/components/footer";
@@ -22,8 +21,8 @@ export default function OverviewPage() {
   const [cityData, setCityData] = useState<Record<string, string>>({});
   const [favorites, setFavorites] = useState<Set<string>>(() => {
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('favorites');
-      return saved ? new Set(JSON.parse(saved)) : new Set();
+      const saved = localStorage.getItem('favorites-overview');
+      return saved ? new Set(JSON.parse(saved) as string[]) : new Set();
     }
     return new Set();
   });
@@ -48,8 +47,6 @@ export default function OverviewPage() {
         return JSON.parse(text);
       })
       .then(result => {
-        console.log('API Response:', result);
-        console.log('First station buyItems:', result.stations[0]?.buyItems);
         setStations(result.stations);
         setFetchTime(new Date(result.fetchTime));
       })
@@ -77,6 +74,21 @@ export default function OverviewPage() {
   }, []);
 
   const timeAgo = useTimeAgo(fetchTime);
+
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key !== 'favorites-overview') return;
+      try {
+        const newVal = e.newValue;
+        const parsed = newVal ? JSON.parse(newVal) as string[] : [];
+        setFavorites(new Set(parsed));
+      } catch (err) {
+        setFavorites(new Set());
+      }
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
 
   const stationIds = stations ? Array.from(new Set((stations as any[]).map((s: any) => s.stationId))) : [];
 
@@ -116,7 +128,7 @@ export default function OverviewPage() {
       } else {
         newFavorites.add(key);
       }
-      localStorage.setItem('favorites', JSON.stringify([...newFavorites]));
+      localStorage.setItem('favorites-overview', JSON.stringify([...newFavorites]));
       return newFavorites;
     });
   };
@@ -153,22 +165,14 @@ export default function OverviewPage() {
       </div>
 
       {/* Buy Items Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-6 px-4">
-        {sortedItems.map((item: any) => (
-          <Card key={`${item.stationId}-${item.goodsJp}`} isFavorite={favorites.has(`${item.stationId}-${item.goodsJp}`)} onToggleFavorite={() => toggleFavorite(item.stationId, item.goodsJp)}>
-            <CardMetric
-              name={item.goodsJp}
-              price={item.price}
-              is_rise={item.is_rise}
-              quota={item.quota}
-              trend={item.trend}
-              imageUrl={`/images/items/${item.goodsJp}.png`}
-              stationName={cityData[item.stationId] || item.stationId}
-              is_rare={item.is_rare}
-            />
-          </Card>
-        ))}
-      </div>
+      <Suspense fallback={<div className="col-span-full text-center py-12 text-gray-400">カード読み込み中...</div>}>
+        <CardGrid
+          favoriteItems={sortedItems}
+          cityData={cityData}
+          onToggleFavorite={toggleFavorite}
+          favorites={favorites}
+        />
+      </Suspense>
 
       <Footer />
     </div>

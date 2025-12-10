@@ -11,12 +11,44 @@ import LastUpdateTime from "@/components/lastUpdateTime";
 import { DataTable } from "@/components/ui/data-table";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { TrendingUp, TrendingDown } from "@mui/icons-material";
+import { Toggle } from "@/components/ui/toggle";
 import { ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown } from "lucide-react";
+import { ArrowUpDown, StarIcon } from "lucide-react";
 import { StationWithItems, PriceTableRow } from "@/types/trade";
 import { useTimeAgo } from "@/hooks/useTimeAgo";
 
 export default function PricesPage() {
+  const [favorites, setFavorites] = useState<Set<string>>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('favorites-prices');
+      return saved ? new Set(JSON.parse(saved) as string[]) : new Set();
+    }
+    return new Set();
+  });
+
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === 'favorites-prices') {
+        const parsed = e.newValue ? JSON.parse(e.newValue) as string[] : [];
+        setFavorites(new Set(parsed));
+      }
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
+
+  const toggleFavorite = (goodsJp: string) => {
+    setFavorites(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(goodsJp)) {
+        newSet.delete(goodsJp);
+      } else {
+        newSet.add(goodsJp);
+      }
+      localStorage.setItem('favorites-prices', JSON.stringify([...newSet]));
+      return newSet;
+    });
+  };
   const [items, setItems] = useState<StationWithItems[]>([]);
   const [tradeData, setTradeData] = useState<Record<string, string>>({});
   const [cityData, setCityData] = useState<Record<string, string>>({});
@@ -68,7 +100,7 @@ export default function PricesPage() {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('visibleStations');
       if (saved) {
-        setVisibleStations(new Set(JSON.parse(saved)));
+        setVisibleStations(new Set(JSON.parse(saved) as string[]));
       } else {
         setVisibleStations(new Set(uniqueStationIds));
       }
@@ -124,7 +156,24 @@ export default function PricesPage() {
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </button>
       ),
-      cell: ({ row }: any) => <div className="font-medium">{row.getValue("goodsJp")}</div>,
+      cell: ({ row }: any) => {
+        const goodsJp = row.getValue("goodsJp") as string;
+        const isFavorite = favorites.has(goodsJp);
+        return (
+          <div className="flex items-center gap-2">
+            <div className="font-medium">{goodsJp}</div>
+            <Toggle
+              pressed={isFavorite}
+              onPressedChange={() => toggleFavorite(goodsJp)}
+              aria-label="toggle favorite"
+              size="sm"
+              className="p-1 h-auto data-[state=on]:*:[svg]:fill-yellow-500 data-[state=on]:*:[svg]:stroke-yellow-500 hover:bg-accent"
+            >
+              <StarIcon className="h-4 w-4" />
+            </Toggle>
+          </div>
+        );
+      },
     },
     ...stationIds.filter(id => visibleStations.has(id)).map(stationId => ({
       accessorKey: stationId,
@@ -184,7 +233,7 @@ export default function PricesPage() {
         );
       },
     }))
-  ], [stationIds, cityData, visibleStations]);
+  ], [stationIds, cityData, visibleStations, favorites]);
 
   const toggleStation = (stationId: string) => {
     setVisibleStations(prev => {

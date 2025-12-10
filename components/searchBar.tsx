@@ -15,8 +15,6 @@ export default function SearchBar({
         placeholder="商品を検索..."
         value={searchQuery}
         onChange={(e) => onSearchChange(e.target.value)}
-        onFocus={(e) => e.target.style.borderColor = '#a855f7'}
-        onBlur={(e) => e.target.style.borderColor = '#9ca3af'}
         className="pr-8"
       />
       {searchQuery && (
