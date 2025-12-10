@@ -9,6 +9,8 @@ import PriceTableFilter from "@/components/priceTableFilter";
 import StationDropdown from "@/components/stationDropdown";
 import LastUpdateTime from "@/components/lastUpdateTime";
 import { DataTable } from "@/components/ui/data-table";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import { TrendingUp, TrendingDown } from "@mui/icons-material";
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
 import { StationWithItems, PriceTableRow } from "@/types/trade";
@@ -20,6 +22,8 @@ export default function PricesPage() {
   const [cityData, setCityData] = useState<Record<string, string>>({});
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [goodsPriceMap, setGoodsPriceMap] = useState<Record<string, Record<string, number>>>({});
+  const [goodsQuotaMap, setGoodsQuotaMap] = useState<Record<string, Record<string, number>>>({});
+  const [goodsIsRiseMap, setGoodsIsRiseMap] = useState<Record<string, Record<string, number>>>({});
   const [stationIds, setStationIds] = useState<string[]>([]);
   const [visibleStations, setVisibleStations] = useState<Set<string>>(new Set());
   const [fetchTime, setFetchTime] = useState<Date | null>(null);
@@ -73,18 +77,26 @@ export default function PricesPage() {
     }
 
     const priceMap: Record<string, Record<string, number>> = {};
+    const quotaMap: Record<string, Record<string, number>> = {};
+    const isRiseMap: Record<string, Record<string, number>> = {};
     for (const station of stations) {
       for (const item of station.buyItems || []) {
         const goodsJp = tradeData[item.itemId] || item.itemId;
         if (!priceMap[goodsJp]) {
           priceMap[goodsJp] = {};
+          quotaMap[goodsJp] = {};
+          isRiseMap[goodsJp] = {};
         }
         if (!priceMap[goodsJp][station.stationId] || priceMap[goodsJp][station.stationId] < item.price) {
           priceMap[goodsJp][station.stationId] = item.price;
+          quotaMap[goodsJp][station.stationId] = (item.quota !== undefined ? item.quota : 0);
+          isRiseMap[goodsJp][station.stationId] = (item.is_rise !== undefined ? item.is_rise : 0);
         }
       }
     }
     setGoodsPriceMap(priceMap);
+    setGoodsQuotaMap(quotaMap);
+    setGoodsIsRiseMap(isRiseMap);
   }, [items, tradeData]);
 
   const tableData = useMemo(() =>
@@ -92,10 +104,12 @@ export default function PricesPage() {
       goodsJp,
       ...stationIds.reduce((acc, stationId) => {
         acc[stationId] = goodsPriceMap[goodsJp][stationId] || 0;
+        acc[`${stationId}_quota`] = goodsQuotaMap[goodsJp]?.[stationId] ?? 0;
+        acc[`${stationId}_is_rise`] = goodsIsRiseMap[goodsJp]?.[stationId] ?? 0;
         return acc;
       }, {} as Record<string, number>)
     } as PriceTableRow))
-    , [goodsPriceMap, stationIds]);
+    , [goodsPriceMap, goodsQuotaMap, goodsIsRiseMap, stationIds]);
 
   const columns = useMemo<ColumnDef<PriceTableRow>[]>(() => [
     {
@@ -126,7 +140,48 @@ export default function PricesPage() {
       ),
       cell: ({ row }: any) => {
         const value = row.getValue(stationId) as number;
-        return <div className="text-center">{value ? value.toLocaleString() : '-'}</div>;
+        const rowData = row.original as PriceTableRow;
+        
+        // 表示されている駅の価格のみを取得
+        const visiblePrices = stationIds
+          .filter(id => visibleStations.has(id))
+          .map(id => rowData[id] as number)
+          .filter(price => price > 0);
+        
+        const maxPrice = Math.max(...visiblePrices);
+        const isMaxPrice = value > 0 && value === maxPrice;
+        
+        const quota = rowData[`${stationId}_quota`] as number | undefined;
+        const is_rise = rowData[`${stationId}_is_rise`] as number | undefined;
+
+        const isRiseTruthy = Boolean(is_rise);
+        const colorClass = quota !== undefined ? (quota > 1 ? 'text-green-400' : 'text-red-400') : '';
+
+        const tooltipContent = (
+          <div className="flex items-center gap-2">
+            {isRiseTruthy ? (
+              <TrendingUp className={colorClass} sx={{ fontSize: 20 }} />
+            ) : (
+              <TrendingDown className={colorClass} sx={{ fontSize: 20 }} />
+            )}
+            <span className={`font-bold ${colorClass}`}>
+              {quota !== undefined ? `${(quota * 100).toFixed(0)}%` : '-'}
+            </span>
+          </div>
+        );
+
+        return (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className={`text-center ${isMaxPrice ? 'text-green-600 font-semibold' : ''}`}>
+                {value ? value.toLocaleString() : '-'}
+              </div>
+            </TooltipTrigger>
+            <TooltipContent sideOffset={6}>
+              {tooltipContent}
+            </TooltipContent>
+          </Tooltip>
+        );
       },
     }))
   ], [stationIds, cityData, visibleStations]);
