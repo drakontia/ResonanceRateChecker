@@ -56,6 +56,7 @@ export default function PricesPage() {
   const [goodsPriceMap, setGoodsPriceMap] = useState<Record<string, Record<string, number>>>({});
   const [goodsQuotaMap, setGoodsQuotaMap] = useState<Record<string, Record<string, number>>>({});
   const [goodsIsRiseMap, setGoodsIsRiseMap] = useState<Record<string, Record<string, number>>>({});
+  const [goodsTrendMap, setGoodsTrendMap] = useState<Record<string, Record<string, number>>>({});
   const [stationIds, setStationIds] = useState<string[]>([]);
   const [visibleStations, setVisibleStations] = useState<Set<string>>(new Set());
   const [fetchTime, setFetchTime] = useState<Date | null>(null);
@@ -111,6 +112,7 @@ export default function PricesPage() {
     const priceMap: Record<string, Record<string, number>> = {};
     const quotaMap: Record<string, Record<string, number>> = {};
     const isRiseMap: Record<string, Record<string, number>> = {};
+    const trendMap: Record<string, Record<string, number>> = {};
     for (const station of stations) {
       for (const item of station.buyItems || []) {
         const goodsJp = tradeData[item.itemId] || item.itemId;
@@ -118,17 +120,20 @@ export default function PricesPage() {
           priceMap[goodsJp] = {};
           quotaMap[goodsJp] = {};
           isRiseMap[goodsJp] = {};
+          trendMap[goodsJp] = {};
         }
         if (!priceMap[goodsJp][station.stationId] || priceMap[goodsJp][station.stationId] < item.price) {
           priceMap[goodsJp][station.stationId] = item.price;
           quotaMap[goodsJp][station.stationId] = (item.quota !== undefined ? item.quota : 0);
           isRiseMap[goodsJp][station.stationId] = (item.is_rise !== undefined ? item.is_rise : 0);
+          trendMap[goodsJp][station.stationId] = (item.trend !== undefined ? item.trend : 0);
         }
       }
     }
     setGoodsPriceMap(priceMap);
     setGoodsQuotaMap(quotaMap);
     setGoodsIsRiseMap(isRiseMap);
+    setGoodsTrendMap(trendMap);
   }, [items, tradeData]);
 
   const tableData = useMemo(() =>
@@ -138,10 +143,11 @@ export default function PricesPage() {
         acc[stationId] = goodsPriceMap[goodsJp][stationId] || 0;
         acc[`${stationId}_quota`] = goodsQuotaMap[goodsJp]?.[stationId] ?? 0;
         acc[`${stationId}_is_rise`] = goodsIsRiseMap[goodsJp]?.[stationId] ?? 0;
+        acc[`${stationId}_trend`] = goodsTrendMap[goodsJp]?.[stationId] ?? 0;
         return acc;
       }, {} as Record<string, number>)
     } as PriceTableRow))
-    , [goodsPriceMap, goodsQuotaMap, goodsIsRiseMap, stationIds]);
+    , [goodsPriceMap, goodsQuotaMap, goodsIsRiseMap, goodsTrendMap, stationIds]);
 
   const columns = useMemo<ColumnDef<PriceTableRow>[]>(() => [
     {
@@ -201,14 +207,13 @@ export default function PricesPage() {
         const isMaxPrice = value > 0 && value === maxPrice;
         
         const quota = rowData[`${stationId}_quota`] as number | undefined;
-        const is_rise = rowData[`${stationId}_is_rise`] as number | undefined;
+        const trend = rowData[`${stationId}_trend`] as number | undefined;
 
-        const isRiseTruthy = Boolean(is_rise);
         const colorClass = quota !== undefined ? (quota > 1 ? 'text-green-400' : 'text-red-400') : '';
 
         const tooltipContent = (
           <div className="flex items-center gap-2">
-            {isRiseTruthy ? (
+            {trend === 1 ? (
               <TrendingUp className={colorClass} sx={{ fontSize: 20 }} />
             ) : (
               <TrendingDown className={colorClass} sx={{ fontSize: 20 }} />
