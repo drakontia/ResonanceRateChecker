@@ -1,17 +1,17 @@
 import { TrendingUp, TrendingDown } from "@mui/icons-material";
 
 export default function QuotaDisplay({ 
-  is_rise, 
+  trend, 
   quota 
 }: { 
-  is_rise?: number; 
+  trend?: number; 
   quota?: number; 
 }) {
   if (quota === undefined) return null;
 
   return (
     <div className="flex items-center gap-2">
-      {is_rise ?
+      {trend === 1 ?
         <TrendingUp className="text-green-400" sx={{ fontSize: 28 }} /> :
         <TrendingDown className="text-red-400" sx={{ fontSize: 28 }} />
       }

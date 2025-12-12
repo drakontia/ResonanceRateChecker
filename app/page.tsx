@@ -188,10 +188,11 @@ export default function Home() {
     });
   };
 
-  // build price/quota/isRise maps for table (same logic as prices page)
+  // build price/quota/isRise/trend maps for table (same logic as prices page)
   const goodsPriceMap: Record<string, Record<string, number>> = {};
   const goodsQuotaMap: Record<string, Record<string, number>> = {};
   const goodsIsRiseMap: Record<string, Record<string, number>> = {};
+  const goodsTrendMap: Record<string, Record<string, number>> = {};
   if (stations) {
     for (const station of stations as any[]) {
       for (const item of station.buyItems || []) {
@@ -200,11 +201,13 @@ export default function Home() {
           goodsPriceMap[goodsJp] = {};
           goodsQuotaMap[goodsJp] = {};
           goodsIsRiseMap[goodsJp] = {};
+          goodsTrendMap[goodsJp] = {};
         }
         if (!goodsPriceMap[goodsJp][station.stationId] || goodsPriceMap[goodsJp][station.stationId] < item.price) {
           goodsPriceMap[goodsJp][station.stationId] = item.price;
           goodsQuotaMap[goodsJp][station.stationId] = (item.quota !== undefined ? item.quota : 0);
           goodsIsRiseMap[goodsJp][station.stationId] = (item.is_rise !== undefined ? item.is_rise : 0);
+          goodsTrendMap[goodsJp][station.stationId] = (item.trend !== undefined ? item.trend : 0);
         }
       }
     }
@@ -216,6 +219,7 @@ export default function Home() {
       acc[stationId] = goodsPriceMap[goodsJp][stationId] || 0;
       acc[`${stationId}_quota`] = goodsQuotaMap[goodsJp]?.[stationId] ?? 0;
       acc[`${stationId}_is_rise`] = goodsIsRiseMap[goodsJp]?.[stationId] ?? 0;
+      acc[`${stationId}_trend`] = goodsTrendMap[goodsJp]?.[stationId] ?? 0;
       return acc;
     }, {} as Record<string, number>)
   }));
@@ -276,13 +280,12 @@ export default function Home() {
         const isMaxPrice = value > 0 && value === maxPrice;
 
         const quota = rowData[`${stationId}_quota`] as number | undefined;
-        const is_rise = rowData[`${stationId}_is_rise`] as number | undefined;
-        const isRiseTruthy = Boolean(is_rise);
+        const trend = rowData[`${stationId}_trend`] as number | undefined;
         const colorClass = quota !== undefined ? (quota > 1 ? 'text-green-400' : 'text-red-400') : '';
 
         const tooltipContent = (
           <div className="flex items-center gap-2">
-            {isRiseTruthy ? (
+            {trend === 1 ? (
               <TrendingUp className={colorClass} sx={{ fontSize: 20 }} />
             ) : (
               <TrendingDown className={colorClass} sx={{ fontSize: 20 }} />

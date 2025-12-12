@@ -77,7 +77,7 @@ export default function CardMetric({
 
         {/* 右半分: 情報 */}
         <div className="flex-1 flex flex-col justify-center space-y-2">
-          <QuotaDisplay is_rise={is_rise} quota={quota} />
+          <QuotaDisplay trend={trend} quota={quota} />
           <PriceDisplay price={price} />
           <StationName stationName={stationName} />
         </div>
