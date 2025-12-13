@@ -19,6 +19,7 @@ import { ArrowUpDown, StarIcon } from "lucide-react";
 import { Toggle } from "@/components/ui/toggle";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ColumnDef } from "@tanstack/react-table";
+import { useFilteredAndSortedItems } from "@/hooks/useFilteredAndSortedItems";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<'cards' | 'favorites'>('cards');
@@ -43,7 +44,18 @@ export default function Home() {
   const [timeAgo, setTimeAgo] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedStation, setSelectedStation] = useState<string | null>(null);
-  const [sortOrder, setSortOrder] = useState<string>('default');
+  const [sortOrder, setSortOrder] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return (localStorage.getItem('sortOrder') as string) || 'default';
+    }
+    return 'default';
+  });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('sortOrder', sortOrder);
+    }
+  }, [sortOrder]);
   const [visibleStations, setVisibleStations] = useState<Set<string>>(new Set());
 
   useEffect(() => {
@@ -144,6 +156,8 @@ export default function Home() {
     const matchesSearch = item.goodsJp.toLowerCase().includes(searchQuery.toLowerCase());
     return favorites.has(`${item.stationId}-${item.goodsJp}`) && matchesSearch;
   });
+
+  const sortedFavoriteItems = useFilteredAndSortedItems(favoriteItems, searchQuery, sortOrder);
 
   const toggleFavorite = (stationId: string, goodsJp: string) => {
     setFavorites(prev => {
@@ -362,10 +376,10 @@ export default function Home() {
 
               <Suspense fallback={<div className="col-span-full text-center py-12 text-gray-400">カード読み込み中...</div>}>
                 <CardGrid
-                  favoriteItems={favoriteItems}
+                  favoriteItems={sortedFavoriteItems}
                   cityData={cityData}
-                    onToggleFavorite={toggleFavorite}
-                    favorites={favorites}
+                  onToggleFavorite={toggleFavorite}
+                  favorites={favorites}
                 />
               </Suspense>
             </div>

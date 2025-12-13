@@ -115,7 +115,7 @@ export default function OverviewPage() {
 
   const allItems = Object.values(itemsByGoods);
 
-  const sortedItems = useFilteredAndSortedItems(allItems, searchQuery, sortOrder, favorites);
+  const sortedItems = useFilteredAndSortedItems(allItems, searchQuery, sortOrder);
 
   if (!stations || Object.keys(tradeData).length === 0) return <div>Loading...</div>;
 
