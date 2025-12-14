@@ -61,15 +61,22 @@ export default function PricesPage() {
   const [stationIds, setStationIds] = useState<string[]>([]);
   const [visibleStations, setVisibleStations] = useState<Set<string>>(new Set());
   const [fetchTime, setFetchTime] = useState<Date | null>(null);
+  const [autoRefreshInterval, setAutoRefreshInterval] = useState<number>(5); // 分単位
+
+  const fetchTradeData = async () => {
+    try {
+      const response = await fetch('/api/trade');
+      const result = await response.json();
+      setItems(result.stations);
+      setFetchTime(new Date(result.fetchTime));
+    } catch (error) {
+      console.error('Failed to fetch trade data:', error);
+    }
+  };
 
   useEffect(() => {
-    fetch('/api/trade')
-      .then(res => res.json())
-      .then(result => {
-        setItems(result.stations);
-        setFetchTime(new Date(result.fetchTime));
-      })
-      .catch(console.error);
+    // Initial fetch
+    fetchTradeData();
     fetch('/db/trade_db.json')
       .then(res => res.json())
       .then((data: TradeDb) => {
@@ -82,7 +89,15 @@ export default function PricesPage() {
         setCityData(data);
       })
       .catch(console.error);
-  }, []);
+
+    // Auto refresh
+    if (autoRefreshInterval > 0) {
+      const interval = setInterval(() => {
+        fetchTradeData();
+      }, autoRefreshInterval * 60 * 1000); // Convert minutes to milliseconds
+      return () => clearInterval(interval);
+    }
+  }, [autoRefreshInterval]);
 
   useEffect(() => {
     if (items.length === 0 || Object.keys(tradeData).length === 0) return;

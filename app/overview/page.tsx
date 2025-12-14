@@ -36,22 +36,22 @@ export default function OverviewPage() {
     return null;
   });
   const [sortOrder, setSortOrder] = useState<string>('default');
+  const [autoRefreshInterval, setAutoRefreshInterval] = useState<number>(5); // 分単位
+
+  const fetchTradeData = async () => {
+    try {
+      const response = await fetch('/api/trade');
+      const result = await response.json();
+      setStations(result.stations);
+      setFetchTime(new Date(result.fetchTime));
+    } catch (error) {
+      console.error('Failed to fetch trade data:', error);
+    }
+  };
 
   useEffect(() => {
-    fetch('/api/trade')
-      .then(res => {
-        if (!res.ok) throw new Error('Failed to fetch');
-        return res.text();
-      })
-      .then(text => {
-        if (!text) throw new Error('Empty response');
-        return JSON.parse(text);
-      })
-      .then(result => {
-        setStations(result.stations);
-        setFetchTime(new Date(result.fetchTime));
-      })
-      .catch(console.error);
+    // Initial fetch
+    fetchTradeData();
     fetch('/db/trade_db.json')
       .then(res => res.json())
       .then((data: TradeDb) => {
@@ -64,7 +64,15 @@ export default function OverviewPage() {
         setCityData(data);
       })
       .catch(console.error);
-  }, []);
+
+    // Auto refresh
+    if (autoRefreshInterval > 0) {
+      const interval = setInterval(() => {
+        fetchTradeData();
+      }, autoRefreshInterval * 60 * 1000); // Convert minutes to milliseconds
+      return () => clearInterval(interval);
+    }
+  }, [autoRefreshInterval]);
 
   const timeAgo = useTimeAgo(fetchTime);
 
