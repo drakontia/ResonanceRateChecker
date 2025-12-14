@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
+import Image from "next/image";
 import { Title } from "@/components/title";
 import Navbar from "@/components/navbar";
 import { Footer } from "@/components/footer";
@@ -14,7 +15,7 @@ import { TrendingUp, TrendingDown } from "@mui/icons-material";
 import { Toggle } from "@/components/ui/toggle";
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown, StarIcon } from "lucide-react";
-import { StationWithItems, PriceTableRow } from "@/types/trade";
+import { StationWithItems, PriceTableRow, TradeDb, CityDb } from "@/types/trade";
 import { useTimeAgo } from "@/hooks/useTimeAgo";
 
 export default function PricesPage() {
@@ -71,22 +72,14 @@ export default function PricesPage() {
       .catch(console.error);
     fetch('/db/trade_db.json')
       .then(res => res.json())
-      .then((data: Array<{ id: string; goods_jp: string }>) => {
-        const tradeMap: Record<string, string> = {};
-        for (const item of data) {
-          tradeMap[item.id] = item.goods_jp;
-        }
-        setTradeData(tradeMap);
+      .then((data: TradeDb) => {
+        setTradeData(data);
       })
       .catch(console.error);
     fetch('/db/city_db.json')
       .then(res => res.json())
-      .then((data: Array<{ id: string; jp: string }>) => {
-        const cityMap: Record<string, string> = {};
-        for (const city of data) {
-          cityMap[city.id] = city.jp;
-        }
-        setCityData(cityMap);
+      .then((data: CityDb) => {
+        setCityData(data);
       })
       .catch(console.error);
   }, []);
@@ -167,6 +160,13 @@ export default function PricesPage() {
         const isFavorite = favorites.has(goodsJp);
         return (
           <div className="flex items-center gap-2">
+            <Image
+              src={`/images/items/${goodsJp}.png`}
+              alt={goodsJp}
+              width={32}
+              height={32}
+              className="object-contain"
+            />
             <div className="font-medium">{goodsJp}</div>
             <Toggle
               pressed={isFavorite}

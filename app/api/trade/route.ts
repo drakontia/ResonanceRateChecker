@@ -1,3 +1,4 @@
+import { Commodity, Station } from '@/types/trade';
 import { revalidateTag } from 'next/cache';
 import { NextResponse } from 'next/server';
 
@@ -32,11 +33,11 @@ export async function GET() {
     const excludeCommodityIds = process.env.NEXT_PUBLIC_EXCLUDE_COMMODITY_IDS?.replaceAll('\n', '').split(',') || [];
     for (const station of Object.values(data.stations)) {
       for (const commodityId of excludeCommodityIds) {
-        if ((station as any).buy_price?.[commodityId]) {
-          delete (station as any).buy_price[commodityId];
+        if ((station as Station).buy_price?.[commodityId]) {
+          delete (station as Station).buy_price[commodityId];
         }
-        if ((station as any).sell_price?.[commodityId]) {
-          delete (station as any).sell_price[commodityId];
+        if ((station as Station).sell_price?.[commodityId]) {
+          delete (station as Station).sell_price[commodityId];
         }
       }
     }
@@ -44,21 +45,21 @@ export async function GET() {
 
   const stations = Object.entries(data.stations).map(
     ([stationId, station]: [string, any]) => {
-      const sellItems = Object.entries(station.sell_price || {}).map(
+      const sellItems = Object.entries(station.sell_price as Record<string, Commodity> || {}).map(
         ([itemId, d]) => ({
           type: "sell" as const,
           stationId,
           itemId,
-          ...(d as object),
+          ...d,
         })
       );
 
-      const buyItems = Object.entries(station.buy_price || {}).map(
+      const buyItems = Object.entries(station.buy_price as Record<string, Commodity> || {}).map(
         ([itemId, d]) => ({
           type: "buy" as const,
           stationId,
           itemId,
-          ...(d as object),
+          ...d,
         })
       );
 
