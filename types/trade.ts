@@ -73,11 +73,6 @@ export type CityDb = Record<string, string>;  // { "83000001": "シュグリシ�
 export type TradeDb = Record<string, string>; // { "84700063": "カーマイン・メイミリメシ", ... }
 export type GoodsDb = Record<string, string>; // { "82900001": "No.7 BEER", ... }
 
-export interface GroupedTrade {
-  goods_jp: string;
-  trades: Trade[];
-}
-
 export interface StationWithItems extends Station {
   stationId: string;
   buyItems: any[];
