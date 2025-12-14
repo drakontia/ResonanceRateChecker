@@ -4,8 +4,8 @@ import { useEffect, useState, useMemo } from "react";
 import Image from "next/image";
 import { Title } from "@/components/title";
 import Navbar from "@/components/navbar";
+import TopNavbar from "@/components/topNavbar";
 import { Footer } from "@/components/footer";
-import { ThemeToggle } from "@/components/themeToggle";
 import PriceTableFilter from "@/components/priceTableFilter";
 import StationDropdown from "@/components/stationDropdown";
 import LastUpdateTime from "@/components/lastUpdateTime";
@@ -272,9 +272,8 @@ export default function PricesPage() {
 
   return (
     <div className="min-h-screen p-8 bg-gray-50 dark:bg-gray-900">
-      <Title>
-        <ThemeToggle />
-      </Title>
+      <TopNavbar />
+      <Title />
       <Navbar />
 
       <div className="flex flex-col md:flex-row gap-4 md:items-center py-4">
