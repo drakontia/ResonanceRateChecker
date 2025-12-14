@@ -25,10 +25,9 @@ export default function TopNavbar() {
               <span className="sr-only">メニューを開く</span>
             </Button>
           </SheetTrigger>
-          <SheetContent side="right" className="w-64">
+          <SheetContent side="right" className="w-24">
             <div className="flex flex-col gap-4 mt-8">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">テーマ切り替え</span>
+              <div className="flex items-center justify-center">
                 <ThemeToggle />
               </div>
             </div>
