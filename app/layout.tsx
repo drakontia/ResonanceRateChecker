@@ -2,6 +2,7 @@ import "./globals.css";
 import { ThemeProvider } from "next-themes";
 import type { Viewport } from 'next'
 import { SpeedInsights } from '@vercel/speed-insights/next';
+import { Analytics } from '@vercel/analytics/react';
 import PWAInstaller from '@/components/PWAInstaller'
 
 export const metadata = {
@@ -39,6 +40,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             <PWAInstaller />
           </ThemeProvider>
           <SpeedInsights />
+          <Analytics />
         </main>
       </body>
     </html>
