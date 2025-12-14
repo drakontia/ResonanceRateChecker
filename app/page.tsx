@@ -21,6 +21,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ColumnDef } from "@tanstack/react-table";
 import { useFilteredAndSortedItems } from "@/hooks/useFilteredAndSortedItems";
 import type { TradeDb, CityDb } from "@/types/trade";
+import Image from "next/image";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<'cards' | 'favorites'>('cards');
@@ -250,6 +251,13 @@ export default function Home() {
         const isFavorite = favoritesPrices.has(goodsJp);
         return (
           <div className="flex items-center gap-2">
+            <Image
+              src={`/images/items/${goodsJp}.png`}
+              alt={goodsJp}
+              width={32}
+              height={32}
+              className="object-contain"
+            />
             <div className="font-medium">{goodsJp}</div>
             <Toggle
               pressed={isFavorite}
