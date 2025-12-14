@@ -1,6 +1,6 @@
 import { Timestamp } from "next/dist/server/lib/cache-handlers/types";
 
-export interface Commodity {
+export type Commodity = {
   price: number;   // 価格
   is_rise: number;   // 価格変動傾向
   quota: number;     // 価格変動係数
@@ -12,7 +12,7 @@ export interface Commodity {
   trade_num: number;   // 不使用
 }
 
-export interface Station {
+export type Station = {
   sell_price: Record<string, Commodity>; // 売値
   buy_price: Record<string, Commodity>;  // 買値
   recyclable?: [string];           // 素材会回収
@@ -68,14 +68,10 @@ export interface StationFilter {
   maxDevDegree?: number;
 }
 
-export interface Trade {
-  id: string;
-  city_cn: string;
-  city_jp: string;
-  trade_type: string;
-  goods_cn: string;
-  goods_jp: string;
-}
+// Database types - now as Record (object) structures
+export type CityDb = Record<string, string>;  // { "83000001": "シュグリシティ", ... }
+export type TradeDb = Record<string, string>; // { "84700063": "カーマイン・メイミリメシ", ... }
+export type GoodsDb = Record<string, string>; // { "82900001": "No.7 BEER", ... }
 
 export interface GroupedTrade {
   goods_jp: string;

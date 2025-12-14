@@ -20,6 +20,7 @@ import { Toggle } from "@/components/ui/toggle";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ColumnDef } from "@tanstack/react-table";
 import { useFilteredAndSortedItems } from "@/hooks/useFilteredAndSortedItems";
+import type { TradeDb, CityDb } from "@/types/trade";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<'cards' | 'favorites'>('cards');
@@ -68,22 +69,14 @@ export default function Home() {
       .catch(console.error);
     fetch('/db/trade_db.json')
       .then(res => res.json())
-      .then((data: Array<{ id: string; goods_jp: string }>) => {
-        const tradeMap: Record<string, string> = {};
-        for (const item of data) {
-          tradeMap[item.id] = item.goods_jp;
-        }
-        setTradeData(tradeMap);
+      .then((data: TradeDb) => {
+        setTradeData(data);
       })
       .catch(console.error);
     fetch('/db/city_db.json')
       .then(res => res.json())
-      .then((data: Array<{ id: string; jp: string }>) => {
-        const cityMap: Record<string, string> = {};
-        for (const city of data) {
-          cityMap[city.id] = city.jp;
-        }
-        setCityData(cityMap);
+      .then((data: CityDb) => {
+        setCityData(data);
       })
       .catch(console.error);
   }, []);

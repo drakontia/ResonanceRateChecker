@@ -13,6 +13,7 @@ import LastUpdateTime from "@/components/lastUpdateTime";
 import { ThemeToggle } from "@/components/themeToggle";
 import { useFilteredAndSortedItems } from "@/hooks/useFilteredAndSortedItems";
 import { useTimeAgo } from "@/hooks/useTimeAgo";
+import type { TradeDb, CityDb } from "@/types/trade";
 
 
 export default function OverviewPage() {
@@ -53,22 +54,14 @@ export default function OverviewPage() {
       .catch(console.error);
     fetch('/db/trade_db.json')
       .then(res => res.json())
-      .then((data: Array<{ id: string; goods_jp: string }>) => {
-        const tradeMap: Record<string, string> = {};
-        for (const item of data) {
-          tradeMap[item.id] = item.goods_jp;
-        }
-        setTradeData(tradeMap);
+      .then((data: TradeDb) => {
+        setTradeData(data);
       })
       .catch(console.error);
     fetch('/db/city_db.json')
       .then(res => res.json())
-      .then((data: Array<{ id: string; jp: string }>) => {
-        const cityMap: Record<string, string> = {};
-        for (const city of data) {
-          cityMap[city.id] = city.jp;
-        }
-        setCityData(cityMap);
+      .then((data: CityDb) => {
+        setCityData(data);
       })
       .catch(console.error);
   }, []);
