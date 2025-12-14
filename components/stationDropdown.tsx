@@ -20,6 +20,24 @@ export default function StationDropdown({
   visibleStations: Set<string>;
   onStationToggle: (stationId: string) => void;
 }) {
+  const handleSelectAll = (e: React.MouseEvent) => {
+    e.preventDefault();
+    stationIds.forEach(id => {
+      if (!visibleStations.has(id)) {
+        onStationToggle(id);
+      }
+    });
+  };
+
+  const handleDeselectAll = (e: React.MouseEvent) => {
+    e.preventDefault();
+    stationIds.forEach(id => {
+      if (visibleStations.has(id)) {
+        onStationToggle(id);
+      }
+    });
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -30,11 +48,31 @@ export default function StationDropdown({
       <DropdownMenuContent className="w-56">
         <DropdownMenuLabel>表示する駅</DropdownMenuLabel>
         <DropdownMenuSeparator />
+        <div className="flex gap-2 px-2 py-1.5">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="flex-1 h-8"
+            onClick={handleSelectAll}
+          >
+            全選択
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="flex-1 h-8"
+            onClick={handleDeselectAll}
+          >
+            全解除
+          </Button>
+        </div>
+        <DropdownMenuSeparator />
         {stationIds.map((stationId) => (
           <DropdownMenuCheckboxItem
             key={stationId}
             checked={visibleStations.has(stationId)}
             onCheckedChange={() => onStationToggle(stationId)}
+            onSelect={(e) => e.preventDefault()}
           >
             {cityData[stationId] || stationId}
           </DropdownMenuCheckboxItem>
