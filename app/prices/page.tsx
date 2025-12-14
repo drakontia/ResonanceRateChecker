@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
+import Image from "next/image";
 import { Title } from "@/components/title";
 import Navbar from "@/components/navbar";
 import { Footer } from "@/components/footer";
@@ -167,6 +168,13 @@ export default function PricesPage() {
         const isFavorite = favorites.has(goodsJp);
         return (
           <div className="flex items-center gap-2">
+            <Image
+              src={`/images/items/${goodsJp}.png`}
+              alt={goodsJp}
+              width={32}
+              height={32}
+              className="object-contain"
+            />
             <div className="font-medium">{goodsJp}</div>
             <Toggle
               pressed={isFavorite}
