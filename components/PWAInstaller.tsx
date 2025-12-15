@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { X } from 'lucide-react'
+import { Ellipsis, X } from 'lucide-react'
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>
@@ -12,6 +12,7 @@ export default function PWAInstaller() {
   const [isIOS, setIsIOS] = useState(false)
   const [isStandalone, setIsStandalone] = useState(false)
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
+  const [showIOSPrompt, setShowIOSPrompt] = useState(true)
   const [showPrompt, setShowPrompt] = useState(false)
 
   useEffect(() => {
@@ -19,6 +20,12 @@ export default function PWAInstaller() {
     setIsIOS(
       /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream
     )
+
+    // 以前に閉じていればiOS用のガイドも非表示
+    const dismissedInitial = localStorage.getItem('pwa-install-dismissed')
+    if (dismissedInitial) {
+      setShowIOSPrompt(false)
+    }
 
     // スタンドアロンモード判定
     setIsStandalone(
@@ -91,6 +98,7 @@ export default function PWAInstaller() {
 
   const handleDismiss = () => {
     setShowPrompt(false)
+    setShowIOSPrompt(false)
     localStorage.setItem('pwa-install-dismissed', Date.now().toString())
   }
 
@@ -100,7 +108,7 @@ export default function PWAInstaller() {
   }
 
   // iOS向けの手動インストール手順
-  if (isIOS && !isStandalone) {
+  if (isIOS && !isStandalone && showIOSPrompt) {
     return (
       <div className="fixed bottom-4 left-4 right-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 z-50 border border-gray-200 dark:border-gray-700">
         <div className="flex justify-between items-start mb-2">
@@ -113,13 +121,7 @@ export default function PWAInstaller() {
           </button>
         </div>
         <p className="text-xs text-gray-600 dark:text-gray-300">
-          このアプリをホーム画面に追加するには、共有ボタン
-          <span className="inline-block mx-1">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="inline">
-              <path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5c0-1.38 1.12-2.5 2.5-2.5s2.5 1.12 2.5 2.5v10.5c0 .55-.45 1-1 1s-1-.45-1-1V6H10v9.5c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5V5c0-2.21-1.79-4-4-4S7 2.79 7 5v12.5c0 3.04 2.46 5.5 5.5 5.5s5.5-2.46 5.5-5.5V6h-1.5z"/>
-            </svg>
-          </span>
-          をタップして、「ホーム画面に追加」を選択してください。
+          このアプリをホーム画面に追加するには、右下の<Ellipsis size={20} />から共有をタップして、「ホーム画面に追加」を選択してください。
         </p>
       </div>
     )
