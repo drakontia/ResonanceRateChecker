@@ -6,6 +6,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ChevronDown } from "lucide-react";
+import { useDebouncedCallback } from "@/hooks/useDebouncedCallback";
 
 export default function StationSelector({
   stationIds,
@@ -18,6 +19,7 @@ export default function StationSelector({
   selectedStation: string | null;
   onStationSelect: (stationId: string | null) => void;
 }>) {
+  const debouncedSelect = useDebouncedCallback(onStationSelect, 300);
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -27,11 +29,11 @@ export default function StationSelector({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        <DropdownMenuItem onClick={() => onStationSelect(null)}>
+        <DropdownMenuItem onClick={() => debouncedSelect(null)}>
           すべて
         </DropdownMenuItem>
         {stationIds.map((stationId) => (
-          <DropdownMenuItem key={stationId} onClick={() => onStationSelect(stationId)}>
+          <DropdownMenuItem key={stationId} onClick={() => debouncedSelect(stationId)}>
             {cityData[stationId] || stationId}
           </DropdownMenuItem>
         ))}

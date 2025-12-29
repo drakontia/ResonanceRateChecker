@@ -8,6 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ChevronDown } from "lucide-react";
+import { useDebouncedCallback } from "@/hooks/useDebouncedCallback";
 
 export default function StationDropdown({
   stationIds,
@@ -20,23 +21,23 @@ export default function StationDropdown({
   visibleStations: Set<string>;
   onStationToggle: (stationId: string) => void;
 }) {
-  const handleSelectAll = (e: React.MouseEvent) => {
+  const handleSelectAll = useDebouncedCallback((e: React.MouseEvent) => {
     e.preventDefault();
     stationIds.forEach(id => {
       if (!visibleStations.has(id)) {
         onStationToggle(id);
       }
     });
-  };
+  }, 300);
 
-  const handleDeselectAll = (e: React.MouseEvent) => {
+  const handleDeselectAll = useDebouncedCallback((e: React.MouseEvent) => {
     e.preventDefault();
     stationIds.forEach(id => {
       if (visibleStations.has(id)) {
         onStationToggle(id);
       }
     });
-  };
+  }, 300);
 
   return (
     <DropdownMenu>

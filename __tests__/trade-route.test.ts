@@ -1,6 +1,21 @@
+
 import { GET } from '../app/api/trade/route';
 
+// NextResponse.jsonをモック
+jest.mock('next/server', () => ({
+  NextResponse: {
+    json: (data: any) => ({
+      json: async () => data,
+    }),
+  },
+}));
+
 global.fetch = jest.fn();
+
+// TextEncoderをグローバルに追加
+if (!global.TextEncoder) {
+  global.TextEncoder = require('util').TextEncoder;
+}
 
 describe('Trade API Route', () => {
   beforeEach(() => {
