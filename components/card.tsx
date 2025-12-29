@@ -15,7 +15,7 @@ export default function Card({ children, isFavorite, onToggleFavorite }: CardPro
         aria-label="Toggle star"
         pressed={isFavorite}
         onPressedChange={onToggleFavorite}
-        className="absolute top-2 right-2　data-[state=on]:bg-transparent data-[state=on]:*:[svg]:fill-yellow-500 data-[state=on]:*:[svg]:stroke-yellow-500"
+        className="absolute top-2 right-2 data-[state=on]:bg-transparent data-[state=on]:*:[svg]:fill-yellow-500 data-[state=on]:*:[svg]:stroke-yellow-500"
         size="sm"
       >
         <StarIcon />

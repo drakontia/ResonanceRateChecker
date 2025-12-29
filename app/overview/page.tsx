@@ -13,13 +13,13 @@ import SortSelector from "@/components/sortSelector";
 import LastUpdateTime from "@/components/lastUpdateTime";
 import { useFilteredAndSortedItems } from "@/hooks/useFilteredAndSortedItems";
 import { useTimeAgo } from "@/hooks/useTimeAgo";
-import type { TradeDb, CityDb } from "@/types/trade";
+
+import { cityDb } from "@/lib/cityDb";
+import { tradeDb } from "@/lib/tradeDb";
 
 
 export default function OverviewPage() {
   const [stations, setStations] = useState<any>(null);
-  const [tradeData, setTradeData] = useState<Record<string, string>>({});
-  const [cityData, setCityData] = useState<Record<string, string>>({});
   const [favorites, setFavorites] = useState<Set<string>>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('favorites-overview');
@@ -59,18 +59,6 @@ export default function OverviewPage() {
   useEffect(() => {
     // Initial fetch
     fetchTradeData();
-    fetch('/db/trade_db.json')
-      .then(res => res.json())
-      .then((data: TradeDb) => {
-        setTradeData(data);
-      })
-      .catch(console.error);
-    fetch('/db/city_db.json')
-      .then(res => res.json())
-      .then((data: CityDb) => {
-        setCityData(data);
-      })
-      .catch(console.error);
 
     // Auto refresh
     if (autoRefreshInterval > 0) {
@@ -107,7 +95,7 @@ export default function OverviewPage() {
       if (selectedStation && station.stationId !== selectedStation) return;
 
       station.buyItems.forEach((item: any) => {
-        const goodsJp = tradeData[item.itemId];
+        const goodsJp = tradeDb[item.itemId];
         if (!goodsJp) return;
 
         if (!itemsByGoods[goodsJp] || itemsByGoods[goodsJp].price < item.price) {
@@ -125,7 +113,7 @@ export default function OverviewPage() {
 
   const sortedItems = useFilteredAndSortedItems(allItems, searchQuery, sortOrder);
 
-  if (!stations || Object.keys(tradeData).length === 0) return <div>Loading...</div>;
+  if (!stations || Object.keys(tradeDb).length === 0) return <div>Loading...</div>;
 
   const toggleFavorite = (stationId: string, goodsJp: string) => {
     const key = `${stationId}-${goodsJp}`;
@@ -153,7 +141,7 @@ export default function OverviewPage() {
         />
         <StationSelector
           stationIds={stationIds}
-          cityData={cityData}
+          cityData={cityDb}
           selectedStation={selectedStation}
           onStationSelect={(stationId) => {
             setSelectedStation(stationId);
@@ -175,7 +163,7 @@ export default function OverviewPage() {
       <Suspense fallback={<div className="col-span-full text-center py-12 text-gray-400">カード読み込み中...</div>}>
         <CardGrid
           favoriteItems={sortedItems}
-          cityData={cityData}
+          cityData={cityDb}
           onToggleFavorite={toggleFavorite}
           favorites={favorites}
         />
