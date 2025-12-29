@@ -6,6 +6,24 @@ jest.mock('next-themes', () => ({
   useTheme: () => ({ setTheme, theme: 'light' })
 }));
 
+// lib/cityDb, lib/tradeDb をテスト用データでモック
+jest.mock('@/lib/cityDb', () => ({
+  cityDb: {
+    '83000001': 'シュグリシティ',
+    '83000002': 'ケープシティ',
+    '83000003': '荒地駅',
+  },
+}));
+jest.mock('@/lib/tradeDb', () => ({
+  tradeDb: {
+    '82900001': 'ビール',
+    '82900002': 'ブランデー',
+    '82900003': 'ナッツ',
+    '82900004': 'コハク',
+    '82900005': 'マラカイト',
+  },
+}));
+
 import OverviewPage from '@/app/overview/page';
 
 const mockFetch = jest.fn() as jest.MockedFunction<typeof fetch>;
@@ -51,21 +69,6 @@ const mockStations = [
   }
 ];
 
-
-const mockTradeData = {
-  '82900001': 'ビール',
-  '82900002': 'ブランデー',
-  '82900003': 'ナッツ',
-  '82900004': 'コハク',
-  '82900005': 'マラカイト',
-};
-
-const mockCityData = {
-  '83000001': 'シュグリシティ',
-  '83000002': 'ケープシティ',
-  '83000003': 'ワンダーランド',
-};
-
 beforeEach(() => {
   mockFetch.mockImplementation((url: string | URL | Request) => {
     let urlString: string;
@@ -83,14 +86,18 @@ beforeEach(() => {
       } as Response);
     }
     if (urlString === '/db/trade_db.json') {
+      // jest.mockで定義したtradeDbを返す
+      const { tradeDb } = require('@/lib/tradeDb');
       return Promise.resolve({
-        json: () => Promise.resolve(mockTradeData),
+        json: () => Promise.resolve(tradeDb),
         ok: true,
       } as Response);
     }
     if (urlString === '/db/city_db.json') {
+      // jest.mockで定義したcityDbを返す
+      const { cityDb } = require('@/lib/cityDb');
       return Promise.resolve({
-        json: () => Promise.resolve(mockCityData),
+        json: () => Promise.resolve(cityDb),
         ok: true,
       } as Response);
     }

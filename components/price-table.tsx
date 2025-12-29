@@ -15,7 +15,7 @@ import {
   Typography,
 } from "@mui/material"
 import { ArrowUpward, ArrowDownward, TrendingUp, TrendingDown, TrendingFlat } from "@mui/icons-material"
-import { useEffect, useState } from "react"
+import { cityDb } from "@/lib/cityDb"
 import { Station } from "@/types/trade"
 
 interface PriceTableProps {
@@ -35,23 +35,8 @@ export function PriceTable({
   sortOrder, 
   toggleSort 
 }: PriceTableProps) {
-  const [cityData, setCityData] = useState<Record<string, string>>({});
-
-  useEffect(() => {
-    fetch('/db/city_db.json')
-      .then(res => res.json())
-      .then((data: Array<{id: string, cn: string, jp: string}>) => {
-        const cityMap: Record<string, string> = {};
-        data.forEach(city => {
-          cityMap[city.id] = city.jp;
-        });
-        setCityData(cityMap);
-      })
-      .catch(console.error);
-  }, []);
-
   const getStationName = (stationId: string) => {
-    return cityData[stationId] || stationId;
+    return cityDb[stationId] || stationId;
   };
   return (
     <TableContainer 

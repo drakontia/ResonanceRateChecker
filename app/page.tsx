@@ -20,14 +20,14 @@ import { Toggle } from "@/components/ui/toggle";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ColumnDef } from "@tanstack/react-table";
 import { useFilteredAndSortedItems } from "@/hooks/useFilteredAndSortedItems";
-import type { TradeDb, CityDb } from "@/types/trade";
+
+import { cityDb } from "@/lib/cityDb";
+import { tradeDb } from "@/lib/tradeDb";
 import Image from "next/image";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<'cards' | 'favorites'>('cards');
   const [stations, setStations] = useState<any>(null);
-  const [tradeData, setTradeData] = useState<Record<string, string>>({});
-  const [cityData, setCityData] = useState<Record<string, string>>({});
   const [favorites, setFavorites] = useState<Set<string>>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('favorites-overview');
@@ -75,18 +75,6 @@ export default function Home() {
   useEffect(() => {
     // Initial fetch
     fetchTradeData();
-    fetch('/db/trade_db.json')
-      .then(res => res.json())
-      .then((data: TradeDb) => {
-        setTradeData(data);
-      })
-      .catch(console.error);
-    fetch('/db/city_db.json')
-      .then(res => res.json())
-      .then((data: CityDb) => {
-        setCityData(data);
-      })
-      .catch(console.error);
 
     // Auto refresh
     if (autoRefreshInterval > 0) {
@@ -157,7 +145,7 @@ export default function Home() {
     station.buyItems.map((item: any) => ({
       ...item,
       stationId: station.stationId,
-      goodsJp: tradeData[item.itemId] || item.itemId
+      goodsJp: tradeDb[item.itemId] || item.itemId
     }))
   ) : [];
 
@@ -219,7 +207,7 @@ export default function Home() {
   if (stations) {
     for (const station of stations as any[]) {
       for (const item of station.buyItems || []) {
-        const goodsJp = tradeData[item.itemId] || item.itemId;
+        const goodsJp = tradeDb[item.itemId] || item.itemId;
         if (!goodsPriceMap[goodsJp]) {
           goodsPriceMap[goodsJp] = {};
           goodsQuotaMap[goodsJp] = {};
@@ -295,7 +283,7 @@ export default function Home() {
           className="flex items-center justify-center cursor-pointer"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          {cityData[stationId] || stationId}
+          {cityDb[stationId] || stationId}
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </button>
       ),
@@ -338,7 +326,7 @@ export default function Home() {
         );
       },
     }))
-  ] as ColumnDef<any, any>[]), [stationIds, cityData, favoritesPrices, toggleFavoritePrices]);
+  ] as ColumnDef<any, any>[]), [stationIds, cityDb, favoritesPrices, toggleFavoritePrices]);
 
   // filter tableData for prices favorites
   const favoriteTableData = tableData.filter(row => favoritesPrices.has(row.goodsJp));
@@ -371,7 +359,7 @@ export default function Home() {
                 />
                 <StationSelector
                   stationIds={stationIds}
-                  cityData={cityData}
+                  cityData={cityDb}
                   selectedStation={selectedStation}
                   onStationSelect={(stationId) => {
                     setSelectedStation(stationId);
@@ -392,7 +380,7 @@ export default function Home() {
               <Suspense fallback={<div className="col-span-full text-center py-12 text-gray-400">カード読み込み中...</div>}>
                 <CardGrid
                   favoriteItems={sortedFavoriteItems}
-                  cityData={cityData}
+                  cityData={cityDb}
                   onToggleFavorite={toggleFavorite}
                   favorites={favorites}
                 />
@@ -409,7 +397,7 @@ export default function Home() {
                 />
                 <StationDropdown
                   stationIds={stationIds}
-                  cityData={cityData}
+                  cityData={cityDb}
                   visibleStations={visibleStations}
                   onStationToggle={toggleStation}
                 />

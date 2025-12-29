@@ -15,7 +15,9 @@ import { TrendingUp, TrendingDown } from "@mui/icons-material";
 import { Toggle } from "@/components/ui/toggle";
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown, StarIcon } from "lucide-react";
-import { StationWithItems, PriceTableRow, TradeDb, CityDb } from "@/types/trade";
+import { StationWithItems, PriceTableRow } from "@/types/trade";
+import { tradeDb } from "@/lib/tradeDb";
+import { cityDb } from "@/lib/cityDb";
 import { useTimeAgo } from "@/hooks/useTimeAgo";
 
 export default function PricesPage() {
@@ -51,8 +53,6 @@ export default function PricesPage() {
     });
   };
   const [items, setItems] = useState<StationWithItems[]>([]);
-  const [tradeData, setTradeData] = useState<Record<string, string>>({});
-  const [cityData, setCityData] = useState<Record<string, string>>({});
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [goodsPriceMap, setGoodsPriceMap] = useState<Record<string, Record<string, number>>>({});
   const [goodsQuotaMap, setGoodsQuotaMap] = useState<Record<string, Record<string, number>>>({});
@@ -77,18 +77,6 @@ export default function PricesPage() {
   useEffect(() => {
     // Initial fetch
     fetchTradeData();
-    fetch('/db/trade_db.json')
-      .then(res => res.json())
-      .then((data: TradeDb) => {
-        setTradeData(data);
-      })
-      .catch(console.error);
-    fetch('/db/city_db.json')
-      .then(res => res.json())
-      .then((data: CityDb) => {
-        setCityData(data);
-      })
-      .catch(console.error);
 
     // Auto refresh
     if (autoRefreshInterval > 0) {
@@ -100,7 +88,7 @@ export default function PricesPage() {
   }, [autoRefreshInterval]);
 
   useEffect(() => {
-    if (items.length === 0 || Object.keys(tradeData).length === 0) return;
+    if (items.length === 0 || Object.keys(tradeDb).length === 0) return;
 
     const stations = items;
     const uniqueStationIds = Array.from(new Set(stations.map((s: any) => s.stationId)));
@@ -123,7 +111,7 @@ export default function PricesPage() {
     const trendMap: Record<string, Record<string, number>> = {};
     for (const station of stations) {
       for (const item of station.buyItems || []) {
-        const goodsJp = tradeData[item.itemId] || item.itemId;
+        const goodsJp = tradeDb[item.itemId] || item.itemId;
         if (!priceMap[goodsJp]) {
           priceMap[goodsJp] = {};
           quotaMap[goodsJp] = {};
@@ -142,7 +130,7 @@ export default function PricesPage() {
     setGoodsQuotaMap(quotaMap);
     setGoodsIsRiseMap(isRiseMap);
     setGoodsTrendMap(trendMap);
-  }, [items, tradeData]);
+  }, [items, tradeDb]);
 
   const tableData = useMemo(() =>
     Object.keys(goodsPriceMap).map(goodsJp => ({
@@ -204,7 +192,7 @@ export default function PricesPage() {
           className="flex items-center justify-center cursor-pointer"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          {cityData[stationId] || stationId}
+          {cityDb[stationId] || stationId}
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </button>
       ),
@@ -253,7 +241,7 @@ export default function PricesPage() {
         );
       },
     }))
-  ], [stationIds, cityData, visibleStations, favorites]);
+  ], [stationIds, cityDb, visibleStations, favorites]);
 
   const toggleStation = (stationId: string) => {
     setVisibleStations(prev => {
@@ -283,7 +271,7 @@ export default function PricesPage() {
         />
         <StationDropdown
           stationIds={stationIds}
-          cityData={cityData}
+          cityData={cityDb}
           visibleStations={visibleStations}
           onStationToggle={toggleStation}
         />
