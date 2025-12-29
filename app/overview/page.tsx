@@ -23,7 +23,14 @@ export default function OverviewPage() {
   const [favorites, setFavorites] = useState<Set<string>>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('favorites-overview');
-      return saved ? new Set(JSON.parse(saved) as string[]) : new Set();
+      let parsed: unknown = [];
+      try {
+        parsed = saved ? JSON.parse(saved) : [];
+        if (!Array.isArray(parsed)) parsed = [];
+      } catch {
+        parsed = [];
+      }
+      return new Set(parsed as string[]);
     }
     return new Set();
   });

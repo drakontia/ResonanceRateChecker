@@ -6,6 +6,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ChevronDown } from "lucide-react";
+import { useDebouncedCallback } from "@/hooks/useDebouncedCallback";
 
 export default function SortSelector({
   sortOrder,
@@ -14,6 +15,7 @@ export default function SortSelector({
   sortOrder: string;
   onSortChange: (order: string) => void;
 }>) {
+  const debouncedSortChange = useDebouncedCallback(onSortChange, 300);
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -23,13 +25,13 @@ export default function SortSelector({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        <DropdownMenuItem onClick={() => onSortChange('default')}>
+        <DropdownMenuItem onClick={() => debouncedSortChange('default')}>
           デフォルト
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onSortChange('price-high')}>
+        <DropdownMenuItem onClick={() => debouncedSortChange('price-high')}>
           価格：高い順
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onSortChange('price-low')}>
+        <DropdownMenuItem onClick={() => debouncedSortChange('price-low')}>
           価格：低い順
         </DropdownMenuItem>
       </DropdownMenuContent>

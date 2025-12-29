@@ -1,5 +1,6 @@
 import { GET, POST } from '../app/api/trade/route';
 import { revalidateTag } from 'next/cache';
+import { NextResponse } from 'next/server';
 
 jest.mock('next/cache', () => ({
   revalidateTag: jest.fn(),
@@ -7,6 +8,16 @@ jest.mock('next/cache', () => ({
 }));
 
 global.fetch = jest.fn();
+
+// TextEncoderをグローバルに追加
+if (!global.TextEncoder) {
+  global.TextEncoder = require('util').TextEncoder;
+}
+
+// NextResponse.jsonをモック
+jest.spyOn(NextResponse, 'json').mockImplementation((data) => {
+  return { json: () => Promise.resolve(data), data } as any;
+});
 
 describe('UpdateTrade API Route', () => {
   beforeEach(() => {
