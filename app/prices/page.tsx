@@ -161,10 +161,17 @@ export default function PricesPage() {
       cell: ({ row }: any) => {
         const goodsJp = row.getValue("goodsJp") as string;
         const isFavorite = favorites.has(goodsJp);
+        // cardMetric.tsxと同じエンコード方式
+        let encodedGoodsJp = goodsJp;
+        try {
+          encodedGoodsJp = encodeURIComponent(decodeURIComponent(goodsJp));
+        } catch {
+          encodedGoodsJp = encodeURIComponent(goodsJp);
+        }
         return (
           <div className="flex items-center gap-2">
             <Image
-              src={`/images/items/${goodsJp}.png`}
+              src={`/images/items/${encodedGoodsJp}.png`}
               alt={goodsJp}
               width={32}
               height={32}
