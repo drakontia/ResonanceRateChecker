@@ -175,6 +175,7 @@ export default function PricesPage() {
               alt={goodsJp}
               width={32}
               height={32}
+              loading="lazy"
               className="object-contain"
             />
             <div className="font-medium">{goodsJp}</div>
