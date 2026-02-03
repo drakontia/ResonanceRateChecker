@@ -81,7 +81,7 @@ export function DataTable<TData, TValue>({
                 {row.getVisibleCells().map((cell) => (
                   <TableCell
                     key={cell.id}
-                    className={cell.column.id === "goodsJp" ? "sticky left-0 bg-background" : ""}
+                    className={cell.column.id === "goodsJp" ? "sticky left-0 bg-background z-10" : "bg-background"}
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
