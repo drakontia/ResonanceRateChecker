@@ -8,6 +8,7 @@ import TopNavbar from "@/components/topNavbar";
 import { Footer } from "@/components/footer";
 import PriceTableFilter from "@/components/priceTableFilter";
 import StationDropdown from "@/components/stationDropdown";
+import PricePercentToggle from "@/components/pricePercentToggle";
 import LastUpdateTime from "@/components/lastUpdateTime";
 import { DataTable } from "@/components/ui/data-table";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
@@ -62,6 +63,7 @@ export default function PricesPage() {
   const [visibleStations, setVisibleStations] = useState<Set<string>>(new Set());
   const [fetchTime, setFetchTime] = useState<Date | null>(null);
   const [autoRefreshInterval, setAutoRefreshInterval] = useState<number>(5); // 分単位
+  const [showPercent, setShowPercent] = useState<boolean>(false);
 
   const fetchTradeData = async () => {
     try {
@@ -208,21 +210,44 @@ export default function PricesPage() {
         const value = row.getValue(stationId) as number;
         const rowData = row.original as PriceTableRow;
         
-        // 表示されている駅の価格のみを取得
+        const quota = rowData[`${stationId}_quota`] as number | undefined;
+        const trend = rowData[`${stationId}_trend`] as number | undefined;
+        
+        // 表示されている駅の価格と％のみを取得
         const visiblePrices = stationIds
           .filter(id => visibleStations.has(id))
           .map(id => rowData[id] as number)
           .filter(price => price > 0);
         
-        const maxPrice = Math.max(...visiblePrices);
-        const isMaxPrice = value > 0 && value === maxPrice;
+        const visibleQuotas = stationIds
+          .filter(id => visibleStations.has(id))
+          .map(id => rowData[`${id}_quota`] as number | undefined)
+          .filter((q): q is number => q !== undefined && q > 0);
         
-        const quota = rowData[`${stationId}_quota`] as number | undefined;
-        const trend = rowData[`${stationId}_trend`] as number | undefined;
+        const maxPrice = Math.max(...visiblePrices);
+        const maxQuota = Math.max(...visibleQuotas);
+        
+        const isMaxPrice = value > 0 && value === maxPrice;
+        const isMaxQuota = quota !== undefined && quota > 0 && quota === maxQuota;
 
         const colorClass = quota !== undefined ? (quota > 1 ? 'text-green-400' : 'text-red-400') : '';
 
-        const tooltipContent = (
+        const displayValue = showPercent 
+          ? (quota !== undefined ? `${(quota * 100).toFixed(0)}%` : '-')
+          : (value ? value.toLocaleString() : '-');
+        
+        const tooltipContent = showPercent ? (
+          <div className="flex items-center gap-2">
+            {trend === 1 ? (
+              <TrendingUp className={colorClass} sx={{ fontSize: 20 }} />
+            ) : (
+              <TrendingDown className={colorClass} sx={{ fontSize: 20 }} />
+            )}
+            <span className={`font-bold ${colorClass}`}>
+              💰{value ? value.toLocaleString() : '-'}
+            </span>
+          </div>
+        ) : (
           <div className="flex items-center gap-2">
             {trend === 1 ? (
               <TrendingUp className={colorClass} sx={{ fontSize: 20 }} />
@@ -235,11 +260,13 @@ export default function PricesPage() {
           </div>
         );
 
+        const isHighlighted = showPercent ? isMaxQuota : isMaxPrice;
+
         return (
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className={`text-center ${isMaxPrice ? 'text-green-600 font-semibold' : ''}`}>
-                {value ? value.toLocaleString() : '-'}
+              <div className={`text-center ${isHighlighted ? 'text-green-600 font-semibold' : ''}`}>
+                {displayValue}
               </div>
             </TooltipTrigger>
             <TooltipContent sideOffset={6}>
@@ -249,7 +276,7 @@ export default function PricesPage() {
         );
       },
     }))
-  ], [stationIds, cityDb, visibleStations, favorites]);
+  ], [stationIds, cityDb, visibleStations, favorites, showPercent]);
 
   const toggleStation = (stationId: string) => {
     setVisibleStations(prev => {
@@ -282,6 +309,10 @@ export default function PricesPage() {
           cityData={cityDb}
           visibleStations={visibleStations}
           onStationToggle={toggleStation}
+        />
+        <PricePercentToggle
+          showPercent={showPercent}
+          onToggle={setShowPercent}
         />
         <LastUpdateTime timeAgo={timeAgo} />
       </div>

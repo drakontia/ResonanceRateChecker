@@ -11,6 +11,7 @@ import StationSelector from "@/components/stationSelector";
 import SortSelector from "@/components/sortSelector";
 import PriceTableFilter from "@/components/priceTableFilter";
 import StationDropdown from "@/components/stationDropdown";
+import PricePercentToggle from "@/components/pricePercentToggle";
 import LastUpdateTime from "@/components/lastUpdateTime";
 import { DataTable } from "@/components/ui/data-table";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
@@ -60,6 +61,7 @@ export default function Home() {
   }, [sortOrder]);
   const [visibleStations, setVisibleStations] = useState<Set<string>>(new Set());
   const [autoRefreshInterval, setAutoRefreshInterval] = useState<number>(5); // 分単位
+  const [showPercent, setShowPercent] = useState<boolean>(false);
 
   const fetchTradeData = async () => {
     try {
@@ -291,17 +293,39 @@ export default function Home() {
         const value = row.getValue(stationId) as number;
         const rowData = row.original as any;
 
+        const quota = rowData[`${stationId}_quota`] as number | undefined;
+        const trend = rowData[`${stationId}_trend`] as number | undefined;
+
         const visiblePrices = stationIds
           .map(id => rowData[id] as number)
           .filter(price => price > 0);
         const maxPrice = Math.max(...visiblePrices);
         const isMaxPrice = value > 0 && value === maxPrice;
 
-        const quota = rowData[`${stationId}_quota`] as number | undefined;
-        const trend = rowData[`${stationId}_trend`] as number | undefined;
+        const visibleQuotas = stationIds
+          .map(id => rowData[`${id}_quota`] as number | undefined)
+          .filter((q): q is number => q !== undefined && q > 0);
+        const maxQuota = Math.max(...visibleQuotas);
+        const isMaxQuota = quota !== undefined && quota > 0 && quota === maxQuota;
+
         const colorClass = quota !== undefined ? (quota > 1 ? 'text-green-400' : 'text-red-400') : '';
 
-        const tooltipContent = (
+        const displayValue = showPercent 
+          ? (quota !== undefined ? `${(quota * 100).toFixed(0)}%` : '-')
+          : (value ? value.toLocaleString() : '-');
+
+        const tooltipContent = showPercent ? (
+          <div className="flex items-center gap-2">
+            {trend === 1 ? (
+              <TrendingUp className={colorClass} sx={{ fontSize: 20 }} />
+            ) : (
+              <TrendingDown className={colorClass} sx={{ fontSize: 20 }} />
+            )}
+            <span className={`font-bold ${colorClass}`}>
+              💰{value ? value.toLocaleString() : '-'}
+            </span>
+          </div>
+        ) : (
           <div className="flex items-center gap-2">
             {trend === 1 ? (
               <TrendingUp className={colorClass} sx={{ fontSize: 20 }} />
@@ -314,11 +338,13 @@ export default function Home() {
           </div>
         );
 
+        const isHighlighted = showPercent ? isMaxQuota : isMaxPrice;
+
         return (
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className={`text-center ${isMaxPrice ? 'text-green-600 font-semibold' : ''}`}>
-                {value ? value.toLocaleString() : '-'}
+              <div className={`text-center ${isHighlighted ? 'text-green-600 font-semibold' : ''}`}>
+                {displayValue}
               </div>
             </TooltipTrigger>
             <TooltipContent sideOffset={6}>{tooltipContent}</TooltipContent>
@@ -326,7 +352,7 @@ export default function Home() {
         );
       },
     }))
-  ] as ColumnDef<any, any>[]), [stationIds, cityDb, favoritesPrices, toggleFavoritePrices]);
+  ] as ColumnDef<any, any>[]), [stationIds, cityDb, favoritesPrices, toggleFavoritePrices, showPercent]);
 
   // filter tableData for prices favorites
   const favoriteTableData = tableData.filter(row => favoritesPrices.has(row.goodsJp));
@@ -400,6 +426,10 @@ export default function Home() {
                   cityData={cityDb}
                   visibleStations={visibleStations}
                   onStationToggle={toggleStation}
+                />
+                <PricePercentToggle
+                  showPercent={showPercent}
+                  onToggle={setShowPercent}
                 />
                 <LastUpdateTime timeAgo={timeAgo} />
               </div>
