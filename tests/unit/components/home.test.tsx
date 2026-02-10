@@ -1,4 +1,4 @@
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent, act } from '@testing-library/react';
 import { vi } from 'vitest';
 
 import Home from '@/app/page';
@@ -111,13 +111,17 @@ describe('Home', () => {
     render(<Home />);
 
     await waitFor(() => expect(screen.getByText('商品一覧')).toBeInTheDocument());
-    fireEvent.click(screen.getByRole('tab', { name: '価格表' }));
+    await act(async () => {
+      fireEvent.click(screen.getByRole('tab', { name: '価格表' }));
+    });
 
     await waitFor(() => expect(screen.getByText('ビール')).toBeInTheDocument());
     expect(screen.getByText('1,100')).toBeInTheDocument();
 
     const toggle = screen.getByRole('switch', { name: '価格/％表示切替' });
-    fireEvent.click(toggle);
+    await act(async () => {
+      fireEvent.click(toggle);
+    });
 
     expect(screen.getByText('120%')).toBeInTheDocument();
   });
@@ -135,5 +139,88 @@ describe('Home', () => {
         screen.getByText('商品一覧ページでお気に入りを選択すると表示されます')
       ).toBeInTheDocument();
     });
+  });
+
+  it('uses defaults when storage is empty and updates time ago', async () => {
+    const now = Date.now();
+    const past = new Date(now - 60 * 1000);
+
+    const getItemMock = vi.spyOn(Storage.prototype, 'getItem');
+    getItemMock.mockImplementation((key: string) => {
+      if (key === 'favorites-overview') return null;
+      if (key === 'favorites-prices') return null;
+      if (key === 'sortOrder') return null;
+      if (key === 'showPercent') return null;
+      if (key === 'visibleStations') return null;
+      return null;
+    });
+
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        stations: mockStations,
+        fetchTime: past.toISOString(),
+      }),
+    });
+
+    render(<Home />);
+
+    await waitFor(() => expect(screen.getByText('並び順')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText('1分前')).toBeInTheDocument());
+  });
+
+  it('renders fallback items and station headers in price table', async () => {
+    const stationsWithFallbacks = [
+      {
+        stationId: '83000001',
+        buyItems: [
+          { itemId: 'item1', price: 1000, is_rise: 1, quota: 1.2, trend: 1, is_rare: 1 },
+          { itemId: 'item1', price: 1200, is_rise: 1, quota: 1.3, trend: 1, is_rare: 1 },
+        ],
+      },
+      {
+        stationId: '83000002',
+        buyItems: [
+          { itemId: 'item3', price: 0 },
+        ],
+      },
+      {
+        stationId: '99999999',
+      },
+    ];
+
+    const getItemMock = vi.spyOn(Storage.prototype, 'getItem');
+    getItemMock.mockImplementation((key: string) => {
+      if (key === 'favorites-overview') return JSON.stringify([]);
+      if (key === 'favorites-prices') return JSON.stringify(['item3']);
+      if (key === 'sortOrder') return 'default';
+      if (key === 'showPercent') return 'false';
+      if (key === 'visibleStations') return JSON.stringify(['83000001', '83000002', '99999999']);
+      return null;
+    });
+
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({ stations: stationsWithFallbacks, fetchTime: new Date().toISOString() }),
+    });
+
+    render(<Home />);
+
+    await waitFor(() => expect(screen.getByText('商品一覧')).toBeInTheDocument());
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('tab', { name: '価格表' }));
+    });
+
+    await waitFor(() => expect(screen.getByText('item3')).toBeInTheDocument());
+    expect(screen.getByText('99999999')).toBeInTheDocument();
+    expect(screen.getAllByText('-').length).toBeGreaterThan(0);
+
+    const toggle = screen.getByRole('switch', { name: '価格/％表示切替' });
+    await act(async () => {
+      fireEvent.click(toggle);
+    });
+
+    expect(screen.getAllByText('0%').length).toBeGreaterThan(0);
   });
 });

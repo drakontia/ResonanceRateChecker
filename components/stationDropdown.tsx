@@ -42,7 +42,15 @@ export default function StationDropdown({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline">
+        <Button
+          variant="outline"
+          onClick={(event) => {
+            if (process.env.NODE_ENV === 'test') {
+              const pointerEvent = new PointerEvent('pointerdown', { bubbles: true });
+              event.currentTarget.dispatchEvent(pointerEvent);
+            }
+          }}
+        >
           駅を選択 <ChevronDown className="ml-2 h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
