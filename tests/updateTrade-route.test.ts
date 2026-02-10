@@ -1,13 +1,16 @@
+import { vi } from 'vitest';
+
 import { GET, POST } from '../app/api/trade/route';
 import { revalidateTag } from 'next/cache';
 import { NextResponse } from 'next/server';
 
-jest.mock('next/cache', () => ({
-  revalidateTag: jest.fn(),
-  cacheTag: jest.fn(),
+vi.mock('next/cache', () => ({
+  revalidateTag: vi.fn(),
+  cacheTag: vi.fn(),
 }));
 
-global.fetch = jest.fn();
+const fetchMock = vi.fn();
+global.fetch = fetchMock as unknown as typeof fetch;
 
 // TextEncoderをグローバルに追加
 if (!global.TextEncoder) {
@@ -15,13 +18,13 @@ if (!global.TextEncoder) {
 }
 
 // NextResponse.jsonをモック
-jest.spyOn(NextResponse, 'json').mockImplementation((data) => {
+vi.spyOn(NextResponse, 'json').mockImplementation((data) => {
   return { json: () => Promise.resolve(data), data } as any;
 });
 
 describe('UpdateTrade API Route', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('キャッシュが更新されること', async () => {
@@ -39,7 +42,7 @@ describe('UpdateTrade API Route', () => {
       },
     };
 
-    (fetch as jest.Mock).mockResolvedValue({
+    fetchMock.mockResolvedValue({
       ok: true,
       json: async () => mockData,
     });

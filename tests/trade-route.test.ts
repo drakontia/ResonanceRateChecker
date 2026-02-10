@@ -1,8 +1,10 @@
 
+import { vi } from 'vitest';
+
 import { GET } from '../app/api/trade/route';
 
 // NextResponse.jsonをモック
-jest.mock('next/server', () => ({
+vi.mock('next/server', () => ({
   NextResponse: {
     json: (data: any) => ({
       json: async () => data,
@@ -10,7 +12,8 @@ jest.mock('next/server', () => ({
   },
 }));
 
-global.fetch = jest.fn();
+const fetchMock = vi.fn();
+global.fetch = fetchMock as unknown as typeof fetch;
 
 // TextEncoderをグローバルに追加
 if (!global.TextEncoder) {
@@ -19,7 +22,7 @@ if (!global.TextEncoder) {
 
 describe('Trade API Route', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('指定されたStationが除外されること', async () => {
@@ -34,7 +37,7 @@ describe('Trade API Route', () => {
       },
     };
 
-    (fetch as jest.Mock).mockResolvedValue({
+    fetchMock.mockResolvedValue({
       ok: true,
       json: async () => mockData,
     });
@@ -63,7 +66,7 @@ describe('Trade API Route', () => {
       },
     };
 
-    (fetch as jest.Mock).mockResolvedValue({
+    fetchMock.mockResolvedValue({
       ok: true,
       json: async () => mockData,
     });

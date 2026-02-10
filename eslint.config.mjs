@@ -1,7 +1,7 @@
 import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
-import jest from "eslint-plugin-jest"
+import vitest from "eslint-plugin-vitest";
 
 const eslintConfig = defineConfig([
   ...nextVitals,
@@ -16,17 +16,13 @@ const eslintConfig = defineConfig([
   ]),
   {
     // update this to match your test files
-    files: ['**/*.spec.js', '**/*.test.tsx'],
-    plugins: { jest: pluginJest },
+    files: ['**/*.spec.{ts,tsx}', '**/*.test.{ts,tsx}'],
+    plugins: { vitest },
     languageOptions: {
-      globals: pluginJest.environments.globals.globals,
+      globals: vitest.environments.env.globals,
     },
     rules: {
-      'jest/no-disabled-tests': 'warn',
-      'jest/no-focused-tests': 'error',
-      'jest/no-identical-title': 'error',
-      'jest/prefer-to-have-length': 'warn',
-      'jest/valid-expect': 'error',
+      ...vitest.configs.recommended.rules,
     },
   },
 ]);
