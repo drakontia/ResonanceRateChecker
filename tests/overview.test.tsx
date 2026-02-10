@@ -1,20 +1,21 @@
-import '@testing-library/jest-dom';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { vi } from 'vitest';
+import type { MockedFunction } from 'vitest';
 // next-themesのuseThemeをdescribe外でモック
-const setTheme = jest.fn();
-jest.mock('next-themes', () => ({
+const setTheme = vi.fn();
+vi.mock('next-themes', () => ({
   useTheme: () => ({ setTheme, theme: 'light' })
 }));
 
 // lib/cityDb, lib/tradeDb をテスト用データでモック
-jest.mock('@/lib/cityDb', () => ({
+vi.mock('@/lib/cityDb', () => ({
   cityDb: {
     '83000001': 'シュグリシティ',
     '83000002': 'ケープシティ',
     '83000003': '荒地駅',
   },
 }));
-jest.mock('@/lib/tradeDb', () => ({
+vi.mock('@/lib/tradeDb', () => ({
   tradeDb: {
     '82900001': 'ビール',
     '82900002': 'ブランデー',
@@ -26,21 +27,21 @@ jest.mock('@/lib/tradeDb', () => ({
 
 import OverviewPage from '@/app/overview/page';
 
-const mockFetch = jest.fn() as jest.MockedFunction<typeof fetch>;
+const mockFetch = vi.fn() as MockedFunction<typeof fetch>;
 globalThis.fetch = mockFetch;
 
 // JSDOM環境でwindow.matchMediaが未定義のため、importより前にjestモックを追加
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: jest.fn().mockImplementation(query => ({
+  value: vi.fn().mockImplementation(query => ({
     matches: false,
     media: query,
     onchange: null,
-    addListener: jest.fn(),
-    removeListener: jest.fn(),
-    addEventListener: jest.fn(),
-    removeEventListener: jest.fn(),
-    dispatchEvent: jest.fn(),
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
   })),
 });
 
@@ -114,7 +115,7 @@ beforeEach(() => {
     '83000003-ブランデー',
     '83000003-マラカイト',
   ];
-  Storage.prototype.getItem = jest.fn((key) => {
+  Storage.prototype.getItem = vi.fn((key) => {
     if (key === 'favorites-overview') {
       return JSON.stringify(favoriteKeys);
     }
@@ -123,7 +124,7 @@ beforeEach(() => {
     }
     return null;
   });
-  Storage.prototype.setItem = jest.fn();
+  Storage.prototype.setItem = vi.fn();
 });
 
 describe('OverviewPage', () => {
