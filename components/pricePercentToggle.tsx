@@ -1,6 +1,6 @@
 "use client";
 
-import { Toggle } from "@/components/ui/toggle";
+import { Switch } from "@/components/ui/switch";
 
 interface PricePercentToggleProps {
   showPercent: boolean;
@@ -16,16 +16,14 @@ export default function PricePercentToggle({
       <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
         表示:
       </span>
-      <Toggle
-        pressed={showPercent}
-        onPressedChange={onToggle}
+      <span className="text-sm text-gray-700 dark:text-gray-300">価格</span>
+      <Switch
+        checked={showPercent}
+        onCheckedChange={onToggle}
         aria-label="価格/％表示切替"
-        variant="outline"
-        size="sm"
-        className="data-[state=on]:bg-blue-100 data-[state=on]:text-blue-700 dark:data-[state=on]:bg-blue-900 dark:data-[state=on]:text-blue-300"
-      >
-        {showPercent ? "％" : "💰 価格"}
-      </Toggle>
+        className="data-[state=checked]:bg-blue-500 data-[state=unchecked]:bg-gray-200 dark:data-[state=unchecked]:bg-gray-700"
+      />
+      <span className="text-sm text-gray-700 dark:text-gray-300">％</span>
     </div>
   );
 }
