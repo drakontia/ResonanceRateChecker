@@ -59,7 +59,19 @@ export default function Home() {
       localStorage.setItem('sortOrder', sortOrder);
     }
   }, [sortOrder]);
-  const [visibleStations, setVisibleStations] = useState<Set<string>>(new Set());
+  const [visibleStations, setVisibleStations] = useState<Set<string>>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('visibleStations');
+      if (saved) {
+        try {
+          return new Set(JSON.parse(saved) as string[]);
+        } catch {
+          return new Set();
+        }
+      }
+    }
+    return new Set();
+  });
   const [autoRefreshInterval, setAutoRefreshInterval] = useState<number>(5); // 分単位
   const [showPercent, setShowPercent] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
@@ -87,8 +99,12 @@ export default function Home() {
     try {
       const response = await fetch('/api/trade');
       const result = await response.json();
+      const fetchedAt = new Date(result.fetchTime);
       setStations(result.stations);
-      setFetchTime(new Date(result.fetchTime));
+      setFetchTime(fetchedAt);
+      const now = new Date();
+      const diff = Math.floor((now.getTime() - fetchedAt.getTime()) / 1000 / 60);
+      setTimeAgo(diff === 0 ? "ただ今" : `${diff}分前`);
     } catch (error) {
       console.error('Failed to fetch trade data:', error);
     }
@@ -164,7 +180,7 @@ export default function Home() {
   const stationIds = stations ? Array.from(new Set((stations as any[]).map((s: any) => s.stationId))) : [];
 
   const allItems = stations ? (stations as any[]).flatMap((station: any) =>
-    station.buyItems.map((item: any) => ({
+    (station.buyItems ?? []).map((item: any) => ({
       ...item,
       stationId: station.stationId,
       goodsJp: tradeDb[item.itemId] || item.itemId
@@ -391,8 +407,12 @@ export default function Home() {
       <div className="px-4">
         <Tabs value={activeTab} onValueChange={(v: string) => setActiveTab(v as 'cards' | 'favorites')}>
           <TabsList>
-            <TabsTrigger value="cards">商品一覧</TabsTrigger>
-            <TabsTrigger value="favorites">価格表</TabsTrigger>
+            <TabsTrigger value="cards" onClick={() => setActiveTab('cards')}>
+              商品一覧
+            </TabsTrigger>
+            <TabsTrigger value="favorites" onClick={() => setActiveTab('favorites')}>
+              価格表
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="cards">

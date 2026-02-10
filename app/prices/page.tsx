@@ -85,25 +85,29 @@ export default function PricesPage() {
     return () => window.removeEventListener('storage', onStorage);
   }, []);
 
-  const fetchTradeData = async () => {
-    try {
-      const response = await fetch('/api/trade');
-      const result = await response.json();
-      setItems(result.stations);
-      setFetchTime(new Date(result.fetchTime));
-    } catch (error) {
-      console.error('Failed to fetch trade data:', error);
-    }
-  };
-
   useEffect(() => {
+    const fetchTradeData = async () => {
+      try {
+        const response = await fetch('/api/trade');
+        const result = await response.json();
+        setItems(result.stations);
+        setFetchTime(new Date(result.fetchTime));
+      } catch (error) {
+        console.error('Failed to fetch trade data:', error);
+      }
+    };
+
+    const loadData = async () => {
+      await fetchTradeData();
+    };
+
     // Initial fetch
-    fetchTradeData();
+    loadData();
 
     // Auto refresh
     if (autoRefreshInterval > 0) {
       const interval = setInterval(() => {
-        fetchTradeData();
+        loadData();
       }, autoRefreshInterval * 60 * 1000); // Convert minutes to milliseconds
       return () => clearInterval(interval);
     }
@@ -114,17 +118,13 @@ export default function PricesPage() {
 
     const stations = items;
     const uniqueStationIds = Array.from(new Set(stations.map((s: any) => s.stationId)));
-    setStationIds(uniqueStationIds);
 
+    let visibleStationsSet = new Set(uniqueStationIds);
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('visibleStations');
       if (saved) {
-        setVisibleStations(new Set(JSON.parse(saved) as string[]));
-      } else {
-        setVisibleStations(new Set(uniqueStationIds));
+        visibleStationsSet = new Set(JSON.parse(saved) as string[]);
       }
-    } else {
-      setVisibleStations(new Set(uniqueStationIds));
     }
 
     const priceMap: Record<string, Record<string, number>> = {};
@@ -148,6 +148,9 @@ export default function PricesPage() {
         }
       }
     }
+
+    setStationIds(uniqueStationIds);
+    setVisibleStations(visibleStationsSet);
     setGoodsPriceMap(priceMap);
     setGoodsQuotaMap(quotaMap);
     setGoodsIsRiseMap(isRiseMap);

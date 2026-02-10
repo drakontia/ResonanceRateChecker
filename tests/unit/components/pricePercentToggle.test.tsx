@@ -1,8 +1,7 @@
-import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { vi } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 
-import PricePercentToggle from '../components/pricePercentToggle';
+import PricePercentToggle from '../../../components/pricePercentToggle';
 
 describe('PricePercentToggle', () => {
   it('renders with price mode initially', () => {

@@ -5,7 +5,7 @@ export default function LastUpdateTime({
 }>) {
   return (
     <div className="text-sm text-gray-500 dark:text-gray-400 ml-auto">
-      最終更新: {timeAgo}
+      最終更新: <span>{timeAgo}</span>
     </div>
   );
 }

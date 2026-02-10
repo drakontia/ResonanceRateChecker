@@ -1,6 +1,6 @@
 import { vi } from 'vitest';
 
-import { GET, POST } from '../app/api/trade/route';
+import { GET, POST } from '../../../app/api/trade/route';
 import { revalidateTag } from 'next/cache';
 import { NextResponse } from 'next/server';
 

@@ -22,7 +22,7 @@ export default function Navbar() {
         </NavigationMenuItem>
                 <NavigationMenuItem>
           <NavigationMenuLink asChild>
-            <Link href="/overview" className="px-4 py-2 font-medium border-b-2">商品一覧</Link>
+                    <Link href="/overview" className="px-4 py-2 font-medium border-b-2">商品一覧ページ</Link>
           </NavigationMenuLink>
         </NavigationMenuItem>
         <NavigationMenuItem>
