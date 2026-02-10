@@ -61,7 +61,27 @@ export default function Home() {
   }, [sortOrder]);
   const [visibleStations, setVisibleStations] = useState<Set<string>>(new Set());
   const [autoRefreshInterval, setAutoRefreshInterval] = useState<number>(5); // 分単位
-  const [showPercent, setShowPercent] = useState<boolean>(false);
+  const [showPercent, setShowPercent] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('showPercent') === 'true';
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('showPercent', String(showPercent));
+    }
+  }, [showPercent]);
+
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key !== 'showPercent') return;
+      setShowPercent(e.newValue === 'true');
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
 
   const fetchTradeData = async () => {
     try {
