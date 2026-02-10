@@ -1,7 +1,7 @@
 
 import { vi } from 'vitest';
 
-import { GET } from '../app/api/trade/route';
+import { GET } from '../../../app/api/trade/route';
 
 // NextResponse.jsonをモック
 vi.mock('next/server', () => ({

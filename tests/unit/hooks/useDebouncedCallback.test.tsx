@@ -2,7 +2,7 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import { vi } from 'vitest';
 
-import { useDebouncedCallback } from '../hooks/useDebouncedCallback';
+import { useDebouncedCallback } from '../../../hooks/useDebouncedCallback';
 
 vi.useFakeTimers();
 
