@@ -15,13 +15,15 @@ import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip
 import { TrendingUp, TrendingDown } from "@mui/icons-material";
 import { Toggle } from "@/components/ui/toggle";
 import { ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown, StarIcon } from "lucide-react";
+import { ArrowUpDown, StarIcon, ArrowUp, ArrowDown } from "lucide-react";
 import { StationWithItems, PriceTableRow } from "@/types/trade";
 import { tradeDb } from "@/lib/tradeDb";
 import { cityDb } from "@/lib/cityDb";
 import { useTimeAgo } from "@/hooks/useTimeAgo";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function PricesPage() {
+  const isMobile = useIsMobile();
   const [favorites, setFavorites] = useState<Set<string>>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('favorites-prices');
@@ -285,6 +287,19 @@ export default function PricesPage() {
 
         const isHighlighted = showPercent ? isMaxQuota : isMaxPrice;
 
+        const TrendIcon = trend === 1 ? ArrowUp : ArrowDown;
+
+        // モバイルの場合はアイコン付きで表示
+        if (isMobile) {
+          return (
+            <div className={`flex items-center justify-center gap-1 ${isHighlighted ? 'text-green-600 font-semibold' : ''}`}>
+              {value > 0 && <TrendIcon className={`h-4 w-4 ${colorClass}`} />}
+              <span>{displayValue}</span>
+            </div>
+          );
+        }
+
+        // デスクトップの場合はTooltipで表示
         return (
           <Tooltip>
             <TooltipTrigger asChild>
@@ -299,7 +314,7 @@ export default function PricesPage() {
         );
       },
     }))
-  ], [stationIds, cityDb, visibleStations, favorites, showPercent]);
+  ], [stationIds, cityDb, visibleStations, favorites, showPercent, isMobile]);
 
   const toggleStation = (stationId: string) => {
     setVisibleStations(prev => {
