@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo, Suspense } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { CardGrid } from "@/components/cardGrid";
 import { Title } from "@/components/title";
 import Navbar from "@/components/navbar";
@@ -13,15 +13,15 @@ import PriceTableFilter from "@/components/priceTableFilter";
 import StationDropdown from "@/components/stationDropdown";
 import PricePercentToggle from "@/components/pricePercentToggle";
 import LastUpdateTime from "@/components/lastUpdateTime";
+import { PriceValueCell } from "@/components/PriceValueCell";
 import { DataTable } from "@/components/ui/data-table";
-import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
-import { TrendingUp, TrendingDown } from "@mui/icons-material";
-import { ArrowUpDown, StarIcon, ArrowUp, ArrowDown } from "lucide-react";
+import { ArrowUpDown, StarIcon } from "lucide-react";
 import { Toggle } from "@/components/ui/toggle";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ColumnDef } from "@tanstack/react-table";
 import { useFilteredAndSortedItems } from "@/hooks/useFilteredAndSortedItems";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { buildPriceMaps, buildTableData, calculateCellValues } from "@/lib/priceTableUtils";
 
 import { cityDb } from "@/lib/cityDb";
 import { tradeDb } from "@/lib/tradeDb";
@@ -179,7 +179,6 @@ export default function Home() {
 
   // Hooks must be called unconditionally before any early returns
   // Define getColumns first as useMemo must be at top level
-  const stationIds = stations ? Array.from(new Set((stations as any[]).map((s: any) => s.stationId))) : [];
 
   const allItems = stations ? (stations as any[]).flatMap((station: any) =>
     (station.buyItems ?? []).map((item: any) => ({
@@ -240,42 +239,18 @@ export default function Home() {
   };
 
   // build price/quota/isRise/trend maps for table (same logic as prices page)
-  const goodsPriceMap: Record<string, Record<string, number>> = {};
-  const goodsQuotaMap: Record<string, Record<string, number>> = {};
-  const goodsIsRiseMap: Record<string, Record<string, number>> = {};
-  const goodsTrendMap: Record<string, Record<string, number>> = {};
-  if (stations) {
-    for (const station of stations as any[]) {
-      for (const item of station.buyItems || []) {
-        const goodsJp = tradeDb[item.itemId] || item.itemId;
-        if (!goodsPriceMap[goodsJp]) {
-          goodsPriceMap[goodsJp] = {};
-          goodsQuotaMap[goodsJp] = {};
-          goodsIsRiseMap[goodsJp] = {};
-          goodsTrendMap[goodsJp] = {};
-        }
-        if (!goodsPriceMap[goodsJp][station.stationId] || goodsPriceMap[goodsJp][station.stationId] < item.price) {
-          goodsPriceMap[goodsJp][station.stationId] = item.price;
-          goodsQuotaMap[goodsJp][station.stationId] = (item.quota !== undefined ? item.quota : 0);
-          goodsIsRiseMap[goodsJp][station.stationId] = (item.is_rise !== undefined ? item.is_rise : 0);
-          goodsTrendMap[goodsJp][station.stationId] = (item.trend !== undefined ? item.trend : 0);
-        }
-      }
-    }
-  }
+  const maps = buildPriceMaps(stations);
+  const goodsPriceMap = maps.goodsPriceMap;
+  const goodsQuotaMap = maps.goodsQuotaMap;
+  const goodsIsRiseMap = maps.goodsIsRiseMap;
+  const goodsTrendMap = maps.goodsTrendMap;
+  const stationIds = maps.stationIds;
 
-  const tableData = Object.keys(goodsPriceMap).map(goodsJp => ({
-    goodsJp,
-    ...stationIds.reduce((acc, stationId) => {
-      acc[stationId] = goodsPriceMap[goodsJp][stationId] || 0;
-      acc[`${stationId}_quota`] = goodsQuotaMap[goodsJp]?.[stationId] ?? 0;
-      acc[`${stationId}_is_rise`] = goodsIsRiseMap[goodsJp]?.[stationId] ?? 0;
-      acc[`${stationId}_trend`] = goodsTrendMap[goodsJp]?.[stationId] ?? 0;
-      return acc;
-    }, {} as Record<string, number>)
-  }));
+  const tableData = buildTableData(goodsPriceMap, goodsQuotaMap, goodsIsRiseMap, goodsTrendMap, stationIds);
 
-  const getColumns = useMemo(() => (stationList: string[]) => ([
+  const visibleStationIds = stationIds.filter(id => visibleStations.has(id));
+
+  const columns: ColumnDef<any, any>[] = [
     {
       accessorKey: "goodsJp",
       header: ({ column }: any) => (
@@ -315,7 +290,7 @@ export default function Home() {
         );
       },
     },
-    ...stationList.map(stationId => ({
+    ...visibleStationIds.map(stationId => ({
       accessorKey: stationId,
       header: ({ column }: any) => (
         <button
@@ -331,78 +306,29 @@ export default function Home() {
         const value = row.getValue(stationId) as number;
         const rowData = row.original as any;
 
-        const quota = rowData[`${stationId}_quota`] as number | undefined;
-        const trend = rowData[`${stationId}_trend`] as number | undefined;
-
-        const visiblePrices = stationIds
-          .map(id => rowData[id] as number)
-          .filter(price => price > 0);
-        const maxPrice = Math.max(...visiblePrices);
-        const isMaxPrice = value > 0 && value === maxPrice;
-
-        const visibleQuotas = stationIds
-          .map(id => rowData[`${id}_quota`] as number | undefined)
-          .filter((q): q is number => q !== undefined && q > 0);
-        const maxQuota = Math.max(...visibleQuotas);
-        const isMaxQuota = quota !== undefined && quota > 0 && quota === maxQuota;
-
-        const colorClass = quota !== undefined ? (quota > 1 ? 'text-green-400' : 'text-red-400') : '';
-
-        const displayValue = showPercent 
-          ? (quota !== undefined ? `${(quota * 100).toFixed(0)}%` : '-')
-          : (value ? value.toLocaleString() : '-');
-
-        const tooltipContent = showPercent ? (
-          <div className="flex items-center gap-2">
-            {trend === 1 ? (
-              <TrendingUp className={colorClass} sx={{ fontSize: 20 }} />
-            ) : (
-              <TrendingDown className={colorClass} sx={{ fontSize: 20 }} />
-            )}
-            <span className={`font-bold ${colorClass}`}>
-              💰{value ? value.toLocaleString() : '-'}
-            </span>
-          </div>
-        ) : (
-          <div className="flex items-center gap-2">
-            {trend === 1 ? (
-              <TrendingUp className={colorClass} sx={{ fontSize: 20 }} />
-            ) : (
-              <TrendingDown className={colorClass} sx={{ fontSize: 20 }} />
-            )}
-            <span className={`font-bold ${colorClass}`}>
-              {quota !== undefined ? `${(quota * 100).toFixed(0)}%` : '-'}
-            </span>
-          </div>
+        const { displayValue, colorClass, isHighlighted, trend, quota } = calculateCellValues(
+          stationId,
+          rowData,
+          stationIds,
+          visibleStations,
+          showPercent
         );
 
-        const isHighlighted = showPercent ? isMaxQuota : isMaxPrice;
-        const TrendIcon = trend === 1 ? ArrowUp : ArrowDown;
-
-        // モバイルの場合はアイコン付きで表示
-        if (isMobile) {
-          return (
-            <div className={`flex items-center justify-center gap-1 ${isHighlighted ? 'text-green-600 font-semibold' : ''}`}>
-              {value > 0 && <TrendIcon className={`h-4 w-4 ${colorClass}`} />}
-              <span>{displayValue}</span>
-            </div>
-          );
-        }
-
-        // デスクトップの場合はTooltipで表示
         return (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className={`text-center ${isHighlighted ? 'text-green-600 font-semibold' : ''}`}>
-                {displayValue}
-              </div>
-            </TooltipTrigger>
-            <TooltipContent sideOffset={6}>{tooltipContent}</TooltipContent>
-          </Tooltip>
+          <PriceValueCell
+            value={value}
+            displayValue={displayValue}
+            colorClass={colorClass}
+            isHighlighted={isHighlighted}
+            trend={trend}
+            quota={quota}
+            showPercent={showPercent}
+            isMobile={isMobile}
+          />
         );
       },
     }))
-  ] as ColumnDef<any, any>[]), [stationIds, cityDb, favoritesPrices, toggleFavoritePrices, showPercent, isMobile]);
+  ];
 
   // filter tableData for prices favorites
   const favoriteTableData = tableData.filter(row => favoritesPrices.has(row.goodsJp));
@@ -488,7 +414,7 @@ export default function Home() {
                 <LastUpdateTime timeAgo={timeAgo} />
               </div>
 
-              <DataTable columns={getColumns(stationIds.filter(id => visibleStations.has(id)))} data={favoriteTableData} searchQuery={searchQuery} />
+              <DataTable columns={columns} data={favoriteTableData} searchQuery={searchQuery} />
             </div>
           </TabsContent>
         </Tabs>
