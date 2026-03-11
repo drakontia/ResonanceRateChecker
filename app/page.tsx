@@ -16,17 +16,19 @@ import LastUpdateTime from "@/components/lastUpdateTime";
 import { DataTable } from "@/components/ui/data-table";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { TrendingUp, TrendingDown } from "@mui/icons-material";
-import { ArrowUpDown, StarIcon } from "lucide-react";
+import { ArrowUpDown, StarIcon, ArrowUp, ArrowDown } from "lucide-react";
 import { Toggle } from "@/components/ui/toggle";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ColumnDef } from "@tanstack/react-table";
 import { useFilteredAndSortedItems } from "@/hooks/useFilteredAndSortedItems";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 import { cityDb } from "@/lib/cityDb";
 import { tradeDb } from "@/lib/tradeDb";
 import Image from "next/image";
 
 export default function Home() {
+  const isMobile = useIsMobile();
   const [activeTab, setActiveTab] = useState<'cards' | 'favorites'>('cards');
   const [stations, setStations] = useState<any>(null);
   const [favorites, setFavorites] = useState<Set<string>>(() => {
@@ -375,7 +377,19 @@ export default function Home() {
         );
 
         const isHighlighted = showPercent ? isMaxQuota : isMaxPrice;
+        const TrendIcon = trend === 1 ? ArrowUp : ArrowDown;
 
+        // モバイルの場合はアイコン付きで表示
+        if (isMobile) {
+          return (
+            <div className={`flex items-center justify-center gap-1 ${isHighlighted ? 'text-green-600 font-semibold' : ''}`}>
+              {value > 0 && <TrendIcon className={`h-4 w-4 ${colorClass}`} />}
+              <span>{displayValue}</span>
+            </div>
+          );
+        }
+
+        // デスクトップの場合はTooltipで表示
         return (
           <Tooltip>
             <TooltipTrigger asChild>
@@ -388,7 +402,7 @@ export default function Home() {
         );
       },
     }))
-  ] as ColumnDef<any, any>[]), [stationIds, cityDb, favoritesPrices, toggleFavoritePrices, showPercent]);
+  ] as ColumnDef<any, any>[]), [stationIds, cityDb, favoritesPrices, toggleFavoritePrices, showPercent, isMobile]);
 
   // filter tableData for prices favorites
   const favoriteTableData = tableData.filter(row => favoritesPrices.has(row.goodsJp));
