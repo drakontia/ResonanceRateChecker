@@ -62,8 +62,9 @@ export function PriceValueCell({
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <div className={`text-center ${isHighlighted ? "text-green-600 font-semibold" : ""}`}>
-          {displayValue}
+        <div className={`flex items-center justify-center gap-1 ${isHighlighted ? "text-green-600 font-semibold" : ""}`}>
+          {value > 0 && <TrendIcon className={`h-4 w-4 ${colorClass}`} />}
+          <span>{displayValue}</span>
         </div>
       </TooltipTrigger>
       <TooltipContent sideOffset={6}>{tooltipContent}</TooltipContent>
