@@ -1,8 +1,6 @@
-name: Update trade data
+name: Update trade data (manual)
 
 on:
-  schedule:
-    - cron: '*/10 * * * *'
   workflow_dispatch:
 
 jobs:
@@ -16,4 +14,4 @@ jobs:
       
       - name: Request API to update trade data
         run: |
-          curl -X POST https://resonance-rate-checker.vercel.app/api/trade
+          curl -X POST https://resonance.drakontia.com/api/trade

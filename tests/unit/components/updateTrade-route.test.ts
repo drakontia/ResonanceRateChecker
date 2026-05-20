@@ -31,7 +31,7 @@ describe('UpdateTrade API Route', () => {
     const response = await POST();
     const result = await response.json();
 
-    expect(revalidateTag).toHaveBeenCalledWith('trade', 'max');
+    expect(revalidateTag).toHaveBeenCalledWith('trade', {});
     expect(result.revalidated).toBe(true);
   });
 
