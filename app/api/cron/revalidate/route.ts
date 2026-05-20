@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  revalidateTag('trade');
+  revalidateTag('trade', {});
 
   return NextResponse.json({
     revalidated: true,

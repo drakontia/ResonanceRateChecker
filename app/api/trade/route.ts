@@ -80,6 +80,6 @@ export async function GET() {
 }
 
 export async function POST() {
-  revalidateTag('trade');
+  revalidateTag('trade', {});
   return NextResponse.json({ revalidated: true });
 }
