@@ -7,9 +7,25 @@ export function useFilteredAndSortedItems(
     return item.goodsJp.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
-  // Keep original order for the 'default' sort (no reordering)
   if (sortOrder === 'default') {
     return filteredItems;
+  }
+
+  if (sortOrder === 'price-high-grouped') {
+    // ① goodsJp でグルーピング
+    const groups: Record<string, typeof allItems> = {};
+    for (const item of filteredItems) {
+      if (!groups[item.goodsJp]) groups[item.goodsJp] = [];
+      groups[item.goodsJp].push(item);
+    }
+    // ② 各グループ内を price 降順でソート
+    for (const key of Object.keys(groups)) {
+      groups[key].sort((a, b) => b.price - a.price);
+    }
+    // ③④ グループを最大価格（代表値）で降順ソートし、フラット化
+    return Object.values(groups)
+      .sort((a, b) => b[0].price - a[0].price)
+      .flat();
   }
 
   const sortedItems = filteredItems.toSorted((a: any, b: any) => {
