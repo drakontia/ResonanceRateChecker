@@ -7,7 +7,7 @@ export async function GET() {
   
   const res = await fetch(url, {
     next: {
-      revalidate: 600, // 10分キャッシュ
+      revalidate: 300, // 5分キャッシュ
       tags: ['trade'],
     },
   });
@@ -80,6 +80,6 @@ export async function GET() {
 }
 
 export async function POST() {
-  revalidateTag('trade', 'max');
+  revalidateTag('trade');
   return NextResponse.json({ revalidated: true });
 }

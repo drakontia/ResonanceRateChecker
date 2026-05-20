@@ -20,7 +20,7 @@ export function Title() {
                 variant="h6" 
                 sx={{ opacity: 0.9, fontSize: { xs: '0.9rem', sm: '1.25rem' } }}
             >
-                リアルタイム商品価格表示
+                リアルタイム商品価格表示（最大5分更新）
             </Typography>
             </CardContent>
         </Card>
