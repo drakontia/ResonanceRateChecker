@@ -1,4 +1,6 @@
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
 import { vi } from 'vitest';
 
 import PricesPage from '@/app/prices/page';
@@ -113,5 +115,26 @@ describe('PricesPage', () => {
     render(<PricesPage />);
 
     await waitFor(() => expect(screen.getByText('武林源（交子）')).toBeInTheDocument());
+  });
+
+  it.each([
+    ['84707496', '有楽町記念バッジ'],
+    ['84707507', '黒月有楽町・テーマアクセサリー'],
+  ])('renders an available image for %s', async (itemId, name) => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        stations: [{ stationId: '83000046', buyItems: [{ itemId, price: 500 }] }],
+        fetchTime: new Date().toISOString(),
+      }),
+    });
+
+    render(<PricesPage />);
+
+    const image = await screen.findByRole('img', { name });
+    const url = new URL(image.getAttribute('src') ?? '', 'http://localhost');
+    const imagePath = decodeURIComponent(url.searchParams.get('url') ?? '');
+    expect(imagePath).toBe(`/images/items/${name}.png`);
+    expect(existsSync(join(process.cwd(), 'public', 'images', 'items', `${name}.png`))).toBe(true);
   });
 });
