@@ -270,6 +270,33 @@ describe('Home', () => {
     expect(screen.getByText('120%')).toBeInTheDocument();
   });
 
+  it('keeps home price-table station columns left-aligned and horizontally scrollable', async () => {
+    const getItemMock = vi.spyOn(Storage.prototype, 'getItem');
+    getItemMock.mockImplementation((key: string) => {
+      if (key === 'favorites-overview') return JSON.stringify([]);
+      if (key === 'favorites-prices') return JSON.stringify([]);
+      if (key === 'sortOrder') return 'default';
+      if (key === 'showPercent') return 'false';
+      if (key === 'visibleStations') return JSON.stringify(['83000001']);
+      return null;
+    });
+
+    const { container } = render(<Home />);
+
+    await screen.findByRole('tab', { name: '価格表' });
+    await act(async () => {
+      fireEvent.click(screen.getByRole('tab', { name: '価格表' }));
+    });
+
+    const stationHeader = await screen.findByRole('button', { name: /シュグリシティ/ });
+    const table = stationHeader.closest('table');
+
+    expect(screen.queryByRole('button', { name: /ケープシティ/ })).not.toBeInTheDocument();
+    expect(stationHeader).toHaveClass('justify-start');
+    expect(table).toHaveClass('w-max');
+    expect(container.querySelector('.overflow-x-auto')).toContainElement(table);
+  });
+
   it('filters cards by search query', async () => {
     render(<Home />);
 

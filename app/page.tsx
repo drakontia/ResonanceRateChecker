@@ -344,7 +344,7 @@ export default function Home() {
       header: ({ column }: any) => (
         <button
           type="button"
-          className="flex items-center justify-center cursor-pointer"
+          className="flex items-center justify-start cursor-pointer"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           {cityDb[stationId] || stationId}
