@@ -88,6 +88,37 @@ describe("priceTableUtils", () => {
       expect(result.goodsPriceMap["マンボウ"]["83000002"]).toBe(200);
       expect(result.goodsPriceMap["unknown-id"]["83000002"]).toBe(300);
     });
+
+    it("groups Wulin specialties sold at other stations under the same name", () => {
+      const stations: StationWithItems[] = [
+        {
+          stationId: "83000046",
+          buyItems: [{ itemId: "84707079", price: 100 }],
+          sellItems: [],
+          sell_price: {},
+          buy_price: {},
+        },
+        {
+          stationId: "83000014",
+          buyItems: [
+            { itemId: "84707538", price: 200 },
+            { itemId: "84707540", price: 300 },
+          ],
+          sellItems: [],
+          sell_price: {},
+          buy_price: {},
+        },
+      ];
+
+      const result = buildPriceMaps(stations);
+
+      expect(result.goodsPriceMap["明前龍井"]).toEqual({
+        "83000046": 100,
+        "83000014": 200,
+      });
+      expect(result.goodsPriceMap["龍井茶"]["83000014"]).toBe(300);
+      expect(result.goodsPriceMap["84707538"]).toBeUndefined();
+    });
   });
 
   describe("buildTableData", () => {
