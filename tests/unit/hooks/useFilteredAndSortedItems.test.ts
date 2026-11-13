@@ -1,6 +1,7 @@
+import { renderHook } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { useFilteredAndSortedItems } from '@/hooks/useFilteredAndSortedItems';
+import { filterAndSortItems, useFilteredAndSortedItems } from '@/hooks/useFilteredAndSortedItems';
 
 describe('useFilteredAndSortedItems', () => {
   const items = [
@@ -10,28 +11,40 @@ describe('useFilteredAndSortedItems', () => {
   ];
 
   it('returns default order when sortOrder is default', () => {
-    const result = useFilteredAndSortedItems(items, '', 'default');
+    const result = filterAndSortItems(items, '', 'default');
     expect(result.map((item) => item.goodsJp)).toEqual(['ビール', 'ワイン', 'アップル']);
   });
 
   it('sorts by price-high', () => {
-    const result = useFilteredAndSortedItems(items, '', 'price-high');
+    const result = filterAndSortItems(items, '', 'price-high');
     expect(result.map((item) => item.goodsJp)).toEqual(['ワイン', 'ビール', 'アップル']);
   });
 
   it('sorts by price-low', () => {
-    const result = useFilteredAndSortedItems(items, '', 'price-low');
+    const result = filterAndSortItems(items, '', 'price-low');
     expect(result.map((item) => item.goodsJp)).toEqual(['アップル', 'ビール', 'ワイン']);
   });
 
   it('sorts by name when sortOrder is other', () => {
-    const result = useFilteredAndSortedItems(items, '', 'name');
+    const result = filterAndSortItems(items, '', 'name');
     expect(result.map((item) => item.goodsJp)).toEqual(['アップル', 'ビール', 'ワイン']);
   });
 
   it('filters by search query', () => {
-    const result = useFilteredAndSortedItems(items, 'ビ', 'default');
+    const result = filterAndSortItems(items, 'ビ', 'default');
     expect(result.map((item) => item.goodsJp)).toEqual(['ビール']);
+  });
+
+  it('reuses filtered results while the debounced query is unchanged', () => {
+    const { result, rerender } = renderHook(
+      ({ searchQuery }) => useFilteredAndSortedItems(items, searchQuery, 'default'),
+      { initialProps: { searchQuery: '' } },
+    );
+    const initialResult = result.current;
+
+    rerender({ searchQuery: '' });
+
+    expect(result.current).toBe(initialResult);
   });
 
   describe('price-high-grouped', () => {
@@ -41,7 +54,7 @@ describe('useFilteredAndSortedItems', () => {
         { goodsJp: 'レースドレス',     price: 900, stationId: 'タワー' },
         { goodsJp: 'シルクのダウン枕', price: 1000, stationId: 'ケープ' },
       ];
-      const result = useFilteredAndSortedItems(multiStationItems, '', 'price-high-grouped');
+      const result = filterAndSortItems(multiStationItems, '', 'price-high-grouped');
       // シルクのダウン枕 group max=1000 > レースドレス group max=900
       // シルクのダウン枕 group is internally sorted: ケープ(1000) then タワー(850)
       expect(result.map((i) => `${i.goodsJp}(${i.stationId})`)).toEqual([
@@ -58,7 +71,7 @@ describe('useFilteredAndSortedItems', () => {
         { goodsJp: 'シルクのダウン枕', price: 1100, stationId: 'ケープ' },
         { goodsJp: 'シルクのダウン枕', price: 700,  stationId: 'タワー' },
       ];
-      const result = useFilteredAndSortedItems(multiStationItems, '', 'price-high-grouped');
+      const result = filterAndSortItems(multiStationItems, '', 'price-high-grouped');
       // 嵐心錦衣 max=1200 > シルクのダウン枕 max=1100
       expect(result.map((i) => i.goodsJp)).toEqual([
         '嵐心錦衣', '嵐心錦衣',
@@ -70,7 +83,7 @@ describe('useFilteredAndSortedItems', () => {
     });
 
     it('returns single-item groups in price descending order', () => {
-      const result = useFilteredAndSortedItems(items, '', 'price-high-grouped');
+      const result = filterAndSortItems(items, '', 'price-high-grouped');
       expect(result.map((item) => item.goodsJp)).toEqual(['ワイン', 'ビール', 'アップル']);
     });
 
@@ -80,7 +93,7 @@ describe('useFilteredAndSortedItems', () => {
         { goodsJp: 'レースドレス',     price: 900,  stationId: 'タワー' },
         { goodsJp: 'シルクのダウン枕', price: 850,  stationId: 'タワー' },
       ];
-      const result = useFilteredAndSortedItems(multiStationItems, 'シルク', 'price-high-grouped');
+      const result = filterAndSortItems(multiStationItems, 'シルク', 'price-high-grouped');
       expect(result).toHaveLength(2);
       expect(result.every((i) => i.goodsJp === 'シルクのダウン枕')).toBe(true);
     });

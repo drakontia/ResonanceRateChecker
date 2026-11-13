@@ -99,6 +99,21 @@ describe('PricesPage', () => {
     );
   });
 
+  it('updates the search input immediately and filters the table after typing pauses', async () => {
+    render(<PricesPage />);
+    await waitFor(() => expect(screen.getByText('ビール')).toBeInTheDocument());
+
+    const searchInput = screen.getByPlaceholderText('商品を検索...');
+    fireEvent.change(searchInput, { target: { value: '存在しない商品' } });
+
+    expect(searchInput).toHaveValue('存在しない商品');
+    expect(screen.getByText('ビール')).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(screen.queryByText('ビール')).not.toBeInTheDocument();
+    });
+  });
+
   it('switches to percent display', async () => {
     render(<PricesPage />);
 

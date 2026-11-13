@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useMemo, useState, Suspense } from "react";
 import { CardGrid } from "@/components/cardGrid";
 import { Title } from "@/components/title";
 import Navbar from "@/components/navbar";
@@ -20,6 +20,7 @@ import { Toggle } from "@/components/ui/toggle";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ColumnDef, SortingState } from "@tanstack/react-table";
 import { useFilteredAndSortedItems } from "@/hooks/useFilteredAndSortedItems";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { buildPriceMaps, buildTableData, calculateCellValues } from "@/lib/priceTableUtils";
 
@@ -75,6 +76,7 @@ export default function Home() {
   const [fetchTime, setFetchTime] = useState<Date | null>(null);
   const [timeAgo, setTimeAgo] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const debouncedSearchQuery = useDebouncedValue(searchQuery);
   const [selectedStation, setSelectedStation] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<string>(() => {
     if (typeof window !== 'undefined') {
@@ -212,20 +214,20 @@ export default function Home() {
   // Hooks must be called unconditionally before any early returns
   // Define getColumns first as useMemo must be at top level
 
-  const allItems = stations ? (stations as any[]).flatMap((station: any) =>
+  const allItems = useMemo(() => stations ? (stations as any[]).flatMap((station: any) =>
     (station.buyItems ?? []).map((item: any) => ({
       ...item,
       stationId: station.stationId,
       goodsJp: tradeDb[item.itemId] || item.itemId
     }))
-  ) : [];
+  ) : [], [stations]);
 
-  const favoriteItems = allItems.filter((item: any) => {
-    const matchesSearch = item.goodsJp.toLowerCase().includes(searchQuery.toLowerCase());
-    return favorites.has(`${item.stationId}-${item.goodsJp}`) && matchesSearch;
-  });
+  const favoriteItems = useMemo(
+    () => allItems.filter((item: any) => favorites.has(`${item.stationId}-${item.goodsJp}`)),
+    [allItems, favorites],
+  );
 
-  const sortedFavoriteItems = useFilteredAndSortedItems(favoriteItems, searchQuery, sortOrder);
+  const sortedFavoriteItems = useFilteredAndSortedItems(favoriteItems, debouncedSearchQuery, sortOrder);
 
   const toggleFavorite = (stationId: string, goodsJp: string) => {
     setFavorites(prev => {
@@ -271,14 +273,17 @@ export default function Home() {
   };
 
   // build price/quota/isRise/trend maps for table (same logic as prices page)
-  const maps = buildPriceMaps(stations);
+  const maps = useMemo(() => buildPriceMaps(stations), [stations]);
   const goodsPriceMap = maps.goodsPriceMap;
   const goodsQuotaMap = maps.goodsQuotaMap;
   const goodsIsRiseMap = maps.goodsIsRiseMap;
   const goodsTrendMap = maps.goodsTrendMap;
   const stationIds = maps.stationIds;
 
-  const tableData = buildTableData(goodsPriceMap, goodsQuotaMap, goodsIsRiseMap, goodsTrendMap, stationIds);
+  const tableData = useMemo(
+    () => buildTableData(goodsPriceMap, goodsQuotaMap, goodsIsRiseMap, goodsTrendMap, stationIds),
+    [goodsPriceMap, goodsQuotaMap, goodsIsRiseMap, goodsTrendMap, stationIds],
+  );
 
   const visibleStationIds = stationIds.filter(id => visibleStations.has(id));
 
@@ -363,7 +368,10 @@ export default function Home() {
   ];
 
   // filter tableData for prices favorites
-  const favoriteTableData = tableData.filter(row => favoritesPrices.has(row.goodsJp));
+  const favoriteTableData = useMemo(
+    () => tableData.filter(row => favoritesPrices.has(row.goodsJp)),
+    [tableData, favoritesPrices],
+  );
 
   if (!stations) return <div>Loading...</div>;
 
@@ -449,7 +457,7 @@ export default function Home() {
               <DataTable
                 columns={columns}
                 data={favoriteTableData}
-                searchQuery={searchQuery}
+                searchQuery={debouncedSearchQuery}
                 sorting={priceTableSorting}
                 onSortingChange={setPriceTableSorting}
               />
