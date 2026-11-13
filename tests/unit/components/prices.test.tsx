@@ -85,6 +85,14 @@ afterEach(() => {
 });
 
 describe('PricesPage', () => {
+  it('fetches trade data without using the browser HTTP cache', async () => {
+    render(<PricesPage />);
+
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith('/api/trade', { cache: 'no-store' });
+    });
+  });
+
   it('renders price data and toggles favorites', async () => {
     render(<PricesPage />);
 

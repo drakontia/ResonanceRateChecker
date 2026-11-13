@@ -128,6 +128,14 @@ beforeEach(() => {
 });
 
 describe('OverviewPage', () => {
+  it('fetches trade data without using the browser HTTP cache', async () => {
+    render(<OverviewPage />);
+
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith('/api/trade', { cache: 'no-store' });
+    });
+  });
+
   it('renders loading state initially', async () => {
     render(<OverviewPage />);
     expect(screen.getByText('Loading...')).toBeInTheDocument();

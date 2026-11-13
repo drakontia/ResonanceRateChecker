@@ -92,6 +92,14 @@ afterEach(() => {
 });
 
 describe('Home', () => {
+  it('fetches trade data without using the browser HTTP cache', async () => {
+    render(<Home />);
+
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith('/api/trade', { cache: 'no-store' });
+    });
+  });
+
   it('opens the usage guide from the help button', async () => {
     render(<Home />);
 
