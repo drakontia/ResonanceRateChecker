@@ -94,7 +94,7 @@ export default function PricesPage() {
   useEffect(() => {
     const fetchTradeData = async () => {
       try {
-        const response = await fetch('/api/trade');
+        const response = await fetch('/api/trade', { cache: 'no-store' });
         const result = await response.json();
         setItems(result.stations);
         setFetchTime(new Date(result.fetchTime));

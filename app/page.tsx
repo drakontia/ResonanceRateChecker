@@ -144,7 +144,7 @@ export default function Home() {
 
   const fetchTradeData = async () => {
     try {
-      const response = await fetch('/api/trade');
+      const response = await fetch('/api/trade', { cache: 'no-store' });
       const result = await response.json();
       const fetchedAt = new Date(result.fetchTime);
       setStations(result.stations);

@@ -51,7 +51,7 @@ export default function OverviewPage() {
 
   const fetchTradeData = async () => {
     try {
-      const response = await fetch('/api/trade');
+      const response = await fetch('/api/trade', { cache: 'no-store' });
       const result = await response.json();
       setStations(result.stations);
       setFetchTime(new Date(result.fetchTime));
