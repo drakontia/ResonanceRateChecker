@@ -18,7 +18,7 @@ import { DataTable } from "@/components/ui/data-table";
 import { ArrowUpDown, StarIcon } from "lucide-react";
 import { Toggle } from "@/components/ui/toggle";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { ColumnDef } from "@tanstack/react-table";
+import { ColumnDef, SortingState } from "@tanstack/react-table";
 import { useFilteredAndSortedItems } from "@/hooks/useFilteredAndSortedItems";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { buildPriceMaps, buildTableData, calculateCellValues } from "@/lib/priceTableUtils";
@@ -26,6 +26,33 @@ import { buildPriceMaps, buildTableData, calculateCellValues } from "@/lib/price
 import { cityDb } from "@/lib/cityDbWithAdditions";
 import { tradeDb } from "@/lib/tradeDbWithAdditions";
 import Image from "next/image";
+
+const PRICE_TABLE_SORTING_KEY = 'home-price-table-sorting';
+
+const readPriceTableSorting = (): SortingState => {
+  if (typeof window === 'undefined') return [];
+
+  const saved = localStorage.getItem(PRICE_TABLE_SORTING_KEY);
+  if (!saved) return [];
+
+  try {
+    const parsed: unknown = JSON.parse(saved);
+    if (!Array.isArray(parsed) || parsed.length > 1) return [];
+
+    const isValid = parsed.every((entry: unknown) =>
+      typeof entry === 'object' &&
+      entry !== null &&
+      'id' in entry &&
+      typeof entry.id === 'string' &&
+      'desc' in entry &&
+      typeof entry.desc === 'boolean'
+    );
+
+    return isValid ? parsed as SortingState : [];
+  } catch {
+    return [];
+  }
+};
 
 export default function Home() {
   const isMobile = useIsMobile();
@@ -55,12 +82,17 @@ export default function Home() {
     }
     return 'default';
   });
+  const [priceTableSorting, setPriceTableSorting] = useState<SortingState>(readPriceTableSorting);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('sortOrder', sortOrder);
     }
   }, [sortOrder]);
+
+  useEffect(() => {
+    localStorage.setItem(PRICE_TABLE_SORTING_KEY, JSON.stringify(priceTableSorting));
+  }, [priceTableSorting]);
   const [visibleStations, setVisibleStations] = useState<Set<string>>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('visibleStations');
@@ -414,7 +446,13 @@ export default function Home() {
                 <LastUpdateTime timeAgo={timeAgo} />
               </div>
 
-              <DataTable columns={columns} data={favoriteTableData} searchQuery={searchQuery} />
+              <DataTable
+                columns={columns}
+                data={favoriteTableData}
+                searchQuery={searchQuery}
+                sorting={priceTableSorting}
+                onSortingChange={setPriceTableSorting}
+              />
             </div>
           </TabsContent>
         </Tabs>
