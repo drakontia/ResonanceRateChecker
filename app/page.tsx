@@ -32,6 +32,7 @@ import { useFilteredAndSortedItems } from "@/hooks/useFilteredAndSortedItems";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { buildPriceMaps, buildTableData, calculateCellValues } from "@/lib/priceTableUtils";
+import { useCurrentUnixSeconds } from "@/hooks/useCurrentUnixSeconds";
 
 import { cityDb } from "@/lib/cityDbWithAdditions";
 import { tradeDb } from "@/lib/tradeDbWithAdditions";
@@ -66,6 +67,7 @@ const readPriceTableSorting = (): SortingState => {
 
 export default function Home() {
   const isMobile = useIsMobile();
+  const nowUnixSeconds = useCurrentUnixSeconds();
   const [activeTab, setActiveTab] = useState<'cards' | 'favorites'>('cards');
   const [stations, setStations] = useState<any>(null);
   const [favorites, setFavorites] = useState<Set<string>>(() => {
@@ -287,11 +289,12 @@ export default function Home() {
   const goodsQuotaMap = maps.goodsQuotaMap;
   const goodsIsRiseMap = maps.goodsIsRiseMap;
   const goodsTrendMap = maps.goodsTrendMap;
+  const goodsTiMap = maps.goodsTiMap;
   const stationIds = maps.stationIds;
 
   const tableData = useMemo(
-    () => buildTableData(goodsPriceMap, goodsQuotaMap, goodsIsRiseMap, goodsTrendMap, stationIds),
-    [goodsPriceMap, goodsQuotaMap, goodsIsRiseMap, goodsTrendMap, stationIds],
+    () => buildTableData(goodsPriceMap, goodsQuotaMap, goodsIsRiseMap, goodsTrendMap, stationIds, goodsTiMap),
+    [goodsPriceMap, goodsQuotaMap, goodsIsRiseMap, goodsTrendMap, goodsTiMap, stationIds],
   );
 
   const visibleStationIds = stationIds.filter(id => visibleStations.has(id));
@@ -370,6 +373,8 @@ export default function Home() {
             quota={quota}
             showPercent={showPercent}
             isMobile={isMobile}
+            ti={rowData[`${stationId}_ti`] as number | undefined}
+            nowUnixSeconds={nowUnixSeconds}
           />
         );
       },
@@ -467,6 +472,7 @@ export default function Home() {
                   cityData={cityDb}
                   onToggleFavorite={toggleFavorite}
                   favorites={favorites}
+                  nowUnixSeconds={nowUnixSeconds}
                 />
               </Suspense>
             </div>

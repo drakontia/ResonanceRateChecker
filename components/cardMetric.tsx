@@ -4,6 +4,7 @@ import PriceDisplay from "./priceDisplay";
 import StationName from "./stationName";
 import QuotaDisplay from "./quotaDisplay";
 import ItemName from "./itemName";
+import { formatTimeAgo } from "@/lib/relativeTime";
 
 export default function CardMetric({
   name,
@@ -14,6 +15,8 @@ export default function CardMetric({
   imageUrl,
   stationName,
   is_rare,
+  ti,
+  nowUnixSeconds,
 }: Readonly<{
   name: string;
   price: string | number;
@@ -23,8 +26,11 @@ export default function CardMetric({
   imageUrl: string;
   stationName?: string;
   is_rare?: number;
+  ti?: number;
+  nowUnixSeconds?: number;
 }>) {
   const [imageError, setImageError] = useState(false);
+  const timeAgo = formatTimeAgo(ti, nowUnixSeconds);
   const encodedImageUrl = imageUrl.split('/').map((part, index) => {
     if (index === imageUrl.split('/').length - 1) {
       try {
@@ -79,6 +85,7 @@ export default function CardMetric({
         <div className="flex-1 lg:flex-[0.9] flex flex-col justify-center space-y-2">
           <QuotaDisplay trend={trend} quota={quota} />
           <PriceDisplay price={price} />
+          {timeAgo && <span className="text-xs text-gray-500 dark:text-gray-400">{timeAgo}</span>}
           <StationName stationName={stationName} />
         </div>
       </div>

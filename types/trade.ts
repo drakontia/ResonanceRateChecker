@@ -1,11 +1,9 @@
-import { Timestamp } from "next/dist/server/lib/cache-handlers/types";
-
 export type Commodity = {
   price: number;   // 価格
   is_rise: number;   // 価格変動傾向
   quota: number;     // 価格変動係数
   is_rare: number;   // 特産品
-  ti: Timestamp;        // 価格の最後更新時間
+  ti?: number;          // 価格の最後更新時間（Unix秒）
   stock: number;     // 在庫数
   not_num: number;   // 不使用
   trend: number;        // 不使用
@@ -84,5 +82,5 @@ export interface StationWithItems extends Station {
 
 export interface PriceTableRow {
   goodsJp: string;
-  [stationId: string]: string | number;
+  [stationId: string]: string | number | undefined;
 }

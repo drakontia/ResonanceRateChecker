@@ -8,9 +8,10 @@ interface CardGridProps {
   cityData: Record<string, string>;
   onToggleFavorite: (stationId: string, goodsJp: string) => void;
   favorites?: Set<string>;
+  nowUnixSeconds?: number;
 }
 
-export function CardGrid({ favoriteItems, cityData, onToggleFavorite, favorites }: CardGridProps) {
+export function CardGrid({ favoriteItems, cityData, onToggleFavorite, favorites, nowUnixSeconds }: CardGridProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-6">
       {favoriteItems.length === 0 ? (
@@ -33,6 +34,8 @@ export function CardGrid({ favoriteItems, cityData, onToggleFavorite, favorites 
               imageUrl={`/images/items/${item.goodsJp}.png`}
               stationName={cityData[item.stationId] || item.stationId}
               is_rare={item.is_rare}
+              ti={item.ti}
+              nowUnixSeconds={nowUnixSeconds}
             />
           </Card>
         ))

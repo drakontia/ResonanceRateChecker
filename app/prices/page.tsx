@@ -21,9 +21,11 @@ import { useTimeAgo } from "@/hooks/useTimeAgo";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { buildPriceMaps, buildTableData, calculateCellValues } from "@/lib/priceTableUtils";
+import { useCurrentUnixSeconds } from "@/hooks/useCurrentUnixSeconds";
 
 export default function PricesPage() {
   const isMobile = useIsMobile();
+  const nowUnixSeconds = useCurrentUnixSeconds();
   const [favorites, setFavorites] = useState<Set<string>>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('favorites-prices');
@@ -62,6 +64,7 @@ export default function PricesPage() {
   const [goodsQuotaMap, setGoodsQuotaMap] = useState<Record<string, Record<string, number>>>({});
   const [goodsIsRiseMap, setGoodsIsRiseMap] = useState<Record<string, Record<string, number>>>({});
   const [goodsTrendMap, setGoodsTrendMap] = useState<Record<string, Record<string, number>>>({});
+  const [goodsTiMap, setGoodsTiMap] = useState<Record<string, Record<string, number | undefined>>>({});
   const [stationIds, setStationIds] = useState<string[]>([]);
   const [visibleStations, setVisibleStations] = useState<Set<string>>(new Set());
   const [fetchTime, setFetchTime] = useState<Date | null>(null);
@@ -125,6 +128,7 @@ export default function PricesPage() {
     setGoodsQuotaMap(maps.goodsQuotaMap);
     setGoodsIsRiseMap(maps.goodsIsRiseMap);
     setGoodsTrendMap(maps.goodsTrendMap);
+    setGoodsTiMap(maps.goodsTiMap);
 
     let visibleStationsSet = new Set(maps.stationIds);
     if (typeof window !== 'undefined') {
@@ -137,8 +141,8 @@ export default function PricesPage() {
   }, [items]);
 
   const tableData = useMemo(() =>
-    buildTableData(goodsPriceMap, goodsQuotaMap, goodsIsRiseMap, goodsTrendMap, stationIds)
-    , [goodsPriceMap, goodsQuotaMap, goodsIsRiseMap, goodsTrendMap, stationIds]);
+    buildTableData(goodsPriceMap, goodsQuotaMap, goodsIsRiseMap, goodsTrendMap, stationIds, goodsTiMap)
+    , [goodsPriceMap, goodsQuotaMap, goodsIsRiseMap, goodsTrendMap, goodsTiMap, stationIds]);
 
   const columns = useMemo<ColumnDef<PriceTableRow>[]>(() => [
     {
@@ -221,11 +225,13 @@ export default function PricesPage() {
             quota={quota}
             showPercent={showPercent}
             isMobile={isMobile}
+            ti={rowData[`${stationId}_ti`] as number | undefined}
+            nowUnixSeconds={nowUnixSeconds}
           />
         );
       },
     }))
-  ], [stationIds, cityDb, visibleStations, favorites, showPercent, isMobile]);
+  ], [stationIds, visibleStations, favorites, showPercent, isMobile, nowUnixSeconds]);
 
   const toggleStation = (stationId: string) => {
     setVisibleStations(prev => {

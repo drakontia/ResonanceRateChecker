@@ -12,6 +12,7 @@ describe("priceTableUtils", () => {
         goodsQuotaMap: {},
         goodsIsRiseMap: {},
         goodsTrendMap: {},
+        goodsTiMap: {},
         stationIds: [],
       });
     });
@@ -21,8 +22,8 @@ describe("priceTableUtils", () => {
         {
           stationId: "S1",
           buyItems: [
-            { itemId: "item-a", price: 100, quota: 0.9, is_rise: 0, trend: 0 },
-            { itemId: "item-a", price: 120, quota: 1.2, is_rise: 1, trend: 1 },
+            { itemId: "item-a", price: 100, quota: 0.9, is_rise: 0, trend: 0, ti: 1_700_000_000 },
+            { itemId: "item-a", price: 120, quota: 1.2, is_rise: 1, trend: 1, ti: 1_700_000_100 },
           ],
           sellItems: [],
           sell_price: {},
@@ -46,6 +47,7 @@ describe("priceTableUtils", () => {
       expect(result.goodsQuotaMap["item-a"]["S1"]).toBe(1.2);
       expect(result.goodsIsRiseMap["item-a"]["S1"]).toBe(1);
       expect(result.goodsTrendMap["item-a"]["S1"]).toBe(1);
+      expect(result.goodsTiMap["item-a"]["S1"]).toBe(1_700_000_100);
       expect(result.goodsPriceMap["item-a"]["S2"]).toBe(110);
     });
 
@@ -136,7 +138,10 @@ describe("priceTableUtils", () => {
         {
           "item-a": { S1: 1 },
         },
-        ["S1", "S2"]
+        ["S1", "S2"],
+        {
+          "item-a": { S1: 1_700_000_100 },
+        }
       );
 
       expect(rows).toHaveLength(1);
@@ -146,6 +151,7 @@ describe("priceTableUtils", () => {
         S1_quota: 1.2,
         S1_is_rise: 1,
         S1_trend: 1,
+        S1_ti: 1_700_000_100,
         S2: 0,
         S2_quota: 0,
         S2_is_rise: 0,
