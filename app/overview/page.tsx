@@ -14,8 +14,8 @@ import LastUpdateTime from "@/components/lastUpdateTime";
 import { useFilteredAndSortedItems } from "@/hooks/useFilteredAndSortedItems";
 import { useTimeAgo } from "@/hooks/useTimeAgo";
 
-import { cityDb } from "@/lib/cityDb";
-import { tradeDb } from "@/lib/tradeDb";
+import { cityDb } from "@/lib/cityDbWithAdditions";
+import { tradeDb } from "@/lib/tradeDbWithAdditions";
 
 
 export default function OverviewPage() {

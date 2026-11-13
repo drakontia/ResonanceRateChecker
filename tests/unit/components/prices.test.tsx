@@ -27,6 +27,12 @@ const mockStations = [
       { itemId: 'item1', price: 1000, is_rise: 1, quota: 1.2, trend: 1, is_rare: 1 },
     ],
   },
+  {
+    stationId: '83000046',
+    buyItems: [
+      { itemId: 'item1', price: 500, is_rise: 0, quota: 0.9, trend: -1, is_rare: 0 },
+    ],
+  },
 ];
 
 const mockFetch = vi.fn();
@@ -64,7 +70,7 @@ beforeEach(() => {
       return 'false';
     }
     if (key === 'visibleStations') {
-      return JSON.stringify(['83000001']);
+      return JSON.stringify(['83000001', '83000046']);
     }
     return null;
   });
@@ -101,5 +107,11 @@ describe('PricesPage', () => {
     fireEvent.click(toggle);
 
     expect(screen.getByText('120%')).toBeInTheDocument();
+  });
+
+  it('labels Jiaozhi prices in the Wulin station header', async () => {
+    render(<PricesPage />);
+
+    await waitFor(() => expect(screen.getByText('武林源（交子）')).toBeInTheDocument());
   });
 });

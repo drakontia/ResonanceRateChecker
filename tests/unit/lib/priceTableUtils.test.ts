@@ -48,6 +48,26 @@ describe("priceTableUtils", () => {
       expect(result.goodsTrendMap["item-a"]["S1"]).toBe(1);
       expect(result.goodsPriceMap["item-a"]["S2"]).toBe(110);
     });
+
+    it("resolves newly added Wulin and synthetic base-oil item IDs", () => {
+      const stations: StationWithItems[] = [
+        {
+          stationId: "83000046",
+          buyItems: [
+            { itemId: "84707235", price: 100 },
+            { itemId: "84707779", price: 200 },
+          ],
+          sellItems: [],
+          sell_price: {},
+          buy_price: {},
+        },
+      ];
+
+      const result = buildPriceMaps(stations);
+
+      expect(result.goodsPriceMap["革新的医薬品"]["83000046"]).toBe(100);
+      expect(result.goodsPriceMap["全合成基油"]["83000046"]).toBe(200);
+    });
   });
 
   describe("buildTableData", () => {
