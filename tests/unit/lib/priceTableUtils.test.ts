@@ -68,6 +68,26 @@ describe("priceTableUtils", () => {
       expect(result.goodsPriceMap["革新的医薬品"]["83000046"]).toBe(100);
       expect(result.goodsPriceMap["全合成基油"]["83000046"]).toBe(200);
     });
+
+    it("resolves additional station item IDs without losing prices", () => {
+      const stations: StationWithItems[] = [{
+        stationId: "83000002",
+        buyItems: [
+          { itemId: "84700696", price: 100 },
+          { itemId: "84701820", price: 200 },
+          { itemId: "unknown-id", price: 300 },
+        ],
+        sellItems: [],
+        sell_price: {},
+        buy_price: {},
+      }];
+
+      const result = buildPriceMaps(stations);
+
+      expect(result.goodsPriceMap["ジン"]["83000002"]).toBe(100);
+      expect(result.goodsPriceMap["マンボウ"]["83000002"]).toBe(200);
+      expect(result.goodsPriceMap["unknown-id"]["83000002"]).toBe(300);
+    });
   });
 
   describe("buildTableData", () => {
