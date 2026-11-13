@@ -92,6 +92,26 @@ afterEach(() => {
 });
 
 describe('Home', () => {
+  it('opens the usage guide from the help button', async () => {
+    render(<Home />);
+
+    const helpButton = await screen.findByRole('button', { name: '使い方を開く' });
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+
+    fireEvent.click(helpButton);
+
+    const dialog = await screen.findByRole('dialog', { name: '使い方' });
+    expect(within(dialog).getByText(/商品名を検索し/)).toBeInTheDocument();
+    expect(within(dialog).getByText(/星アイコンを押すと/)).toBeInTheDocument();
+    expect(within(dialog).getByText(/「価格表」タブ/)).toBeInTheDocument();
+
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Close' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+
+    fireEvent.click(screen.getByRole('tab', { name: '価格表' }));
+    expect(screen.getByRole('button', { name: '使い方を開く' })).toBeInTheDocument();
+  });
+
   it('restores the saved price table sorting after switching to the price table tab', async () => {
     const getItemMock = vi.spyOn(Storage.prototype, 'getItem');
     getItemMock.mockImplementation((key: string) => {

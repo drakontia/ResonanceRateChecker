@@ -15,9 +15,18 @@ import PricePercentToggle from "@/components/pricePercentToggle";
 import LastUpdateTime from "@/components/lastUpdateTime";
 import { PriceValueCell } from "@/components/PriceValueCell";
 import { DataTable } from "@/components/ui/data-table";
-import { ArrowUpDown, StarIcon } from "lucide-react";
+import { ArrowUpDown, CircleHelp, StarIcon } from "lucide-react";
 import { Toggle } from "@/components/ui/toggle";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { ColumnDef, SortingState } from "@tanstack/react-table";
 import { useFilteredAndSortedItems } from "@/hooks/useFilteredAndSortedItems";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
@@ -386,14 +395,43 @@ export default function Home() {
       </div>
       <div className="px-4">
         <Tabs value={activeTab} onValueChange={(v: string) => setActiveTab(v as 'cards' | 'favorites')}>
-          <TabsList>
-            <TabsTrigger value="cards" onClick={() => setActiveTab('cards')}>
-              商品一覧
-            </TabsTrigger>
-            <TabsTrigger value="favorites" onClick={() => setActiveTab('favorites')}>
-              価格表
-            </TabsTrigger>
-          </TabsList>
+          <div className="flex items-center justify-between gap-2">
+            <TabsList>
+              <TabsTrigger value="cards" onClick={() => setActiveTab('cards')}>
+                商品一覧
+              </TabsTrigger>
+              <TabsTrigger value="favorites" onClick={() => setActiveTab('favorites')}>
+                価格表
+              </TabsTrigger>
+            </TabsList>
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" aria-label="使い方を開く">
+                  <CircleHelp aria-hidden="true" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-md">
+                <SheetHeader>
+                  <SheetTitle>使い方</SheetTitle>
+                  <SheetDescription>商品の相場を調べて、気になる商品をホームで確認できます。</SheetDescription>
+                </SheetHeader>
+                <div className="space-y-5 px-4 pb-4 text-sm">
+                  <section className="space-y-1">
+                    <h3 className="font-semibold">商品を探す</h3>
+                    <p>商品一覧ページで商品名を検索し、ステーションや並び順で絞り込めます。</p>
+                  </section>
+                  <section className="space-y-1">
+                    <h3 className="font-semibold">お気に入りをホームに表示</h3>
+                    <p>商品一覧ページで星アイコンを押すと、お気に入りの商品がホームの「商品一覧」に表示されます。</p>
+                  </section>
+                  <section className="space-y-1">
+                    <h3 className="font-semibold">価格表を使う</h3>
+                    <p>「価格表」タブでは星アイコンで商品を登録し、表示するステーションや価格・割合表示を切り替えられます。</p>
+                  </section>
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
 
           <TabsContent value="cards">
             <div>
