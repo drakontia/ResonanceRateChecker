@@ -141,6 +141,26 @@ describe('PricesPage', () => {
     await waitFor(() => expect(screen.getByText('武林源（交子）')).toBeInTheDocument());
   });
 
+  it('keeps station columns left-aligned and horizontally scrollable', async () => {
+    const getItemMock = vi.spyOn(Storage.prototype, 'getItem');
+    getItemMock.mockImplementation((key) => {
+      if (key === 'favorites-prices') return JSON.stringify([]);
+      if (key === 'showPercent') return 'false';
+      if (key === 'visibleStations') return JSON.stringify(['83000001']);
+      return null;
+    });
+
+    const { container } = render(<PricesPage />);
+
+    const stationHeader = await screen.findByRole('button', { name: /シュグリシティ/ });
+    const table = stationHeader.closest('table');
+
+    expect(screen.queryByRole('button', { name: '83000046' })).not.toBeInTheDocument();
+    expect(stationHeader).toHaveClass('justify-start');
+    expect(table).toHaveClass('w-max');
+    expect(container.querySelector('.overflow-x-auto')).toContainElement(table);
+  });
+
   it.each([
     ['84707496', '有楽町記念バッジ'],
     ['84707507', '黒月有楽町・テーマアクセサリー'],
