@@ -102,6 +102,7 @@ pnpm test -- --reporter=verbose -t "buildPriceMaps"
 | `favorites-prices` | 価格表のお気に入り（`goodsJp` の配列） |
 | `visibleStations` | 価格表で表示するステーション ID の配列 |
 | `sortOrder` | ソート順（`'default'` / `'price-high'` / `'price-low'`） |
+| `home-price-table-sorting` | ホーム価格表で選択した列とソート方向 |
 | `showPercent` | 価格を割合（%）表示するか否か（`'true'` / `'false'`） |
 
 複数タブ対応のため `window.addEventListener('storage', ...)` でクロスタブ同期している。

@@ -1,4 +1,4 @@
-import { render, screen, waitFor, fireEvent, act } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent, act, within } from '@testing-library/react';
 import { vi } from 'vitest';
 
 import Home from '@/app/page';
@@ -92,6 +92,129 @@ afterEach(() => {
 });
 
 describe('Home', () => {
+  it('restores the saved price table sorting after switching to the price table tab', async () => {
+    const getItemMock = vi.spyOn(Storage.prototype, 'getItem');
+    getItemMock.mockImplementation((key: string) => {
+      if (key === 'favorites-overview') return JSON.stringify([]);
+      if (key === 'favorites-prices') return JSON.stringify(['ビール', 'ワイン']);
+      if (key === 'visibleStations') return JSON.stringify(['83000001', '83000002']);
+      if (key === 'home-price-table-sorting') {
+        return JSON.stringify([{ id: '83000001', desc: true }]);
+      }
+      return null;
+    });
+
+    render(<Home />);
+
+    await waitFor(() => expect(screen.getByRole('tab', { name: '価格表' })).toBeInTheDocument());
+    await act(async () => {
+      fireEvent.click(screen.getByRole('tab', { name: '価格表' }));
+    });
+
+    await waitFor(() => {
+      const rows = screen.getAllByRole('row').slice(1);
+      expect(within(rows[0]).getByRole('img')).toHaveAttribute('alt', 'ワイン');
+    });
+  });
+
+  it('ignores malformed saved price table sorting', async () => {
+    const getItemMock = vi.spyOn(Storage.prototype, 'getItem');
+    getItemMock.mockImplementation((key: string) => {
+      if (key === 'favorites-overview') return JSON.stringify([]);
+      if (key === 'favorites-prices') return JSON.stringify(['ビール', 'ワイン']);
+      if (key === 'visibleStations') return JSON.stringify(['83000001', '83000002']);
+      if (key === 'home-price-table-sorting') {
+        return JSON.stringify([{ id: '83000001', desc: 'descending' }]);
+      }
+      return null;
+    });
+
+    render(<Home />);
+
+    await waitFor(() => expect(screen.getByRole('tab', { name: '価格表' })).toBeInTheDocument());
+    await act(async () => {
+      fireEvent.click(screen.getByRole('tab', { name: '価格表' }));
+    });
+
+    await waitFor(() => {
+      const rows = screen.getAllByRole('row').slice(1);
+      expect(within(rows[0]).getByRole('img')).toHaveAttribute('alt', 'ビール');
+    });
+  });
+
+  it.each([
+    { columnName: '商品', columnId: 'goodsJp' },
+    { columnName: 'シュグリシティ', columnId: '83000001' },
+  ])('persists sorting for the $columnName column', async ({ columnName, columnId }) => {
+    const getItemMock = vi.spyOn(Storage.prototype, 'getItem');
+    getItemMock.mockImplementation((key: string) => {
+      if (key === 'favorites-overview') return JSON.stringify([]);
+      if (key === 'favorites-prices') return JSON.stringify(['ビール', 'ワイン']);
+      if (key === 'visibleStations') return JSON.stringify(['83000001', '83000002']);
+      return null;
+    });
+
+    render(<Home />);
+
+    await waitFor(() => expect(screen.getByRole('tab', { name: '価格表' })).toBeInTheDocument());
+    await act(async () => {
+      fireEvent.click(screen.getByRole('tab', { name: '価格表' }));
+    });
+
+    await waitFor(() => expect(screen.getByRole('button', { name: new RegExp(columnName) })).toBeInTheDocument());
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: new RegExp(columnName) }));
+    });
+
+    await waitFor(() => {
+      expect(Storage.prototype.setItem).toHaveBeenCalledWith(
+        'home-price-table-sorting',
+        JSON.stringify([{ id: columnId, desc: false }])
+      );
+    });
+  });
+
+  it('keeps the active price table sort when switching tabs', async () => {
+    const getItemMock = vi.spyOn(Storage.prototype, 'getItem');
+    getItemMock.mockImplementation((key: string) => {
+      if (key === 'favorites-overview') return JSON.stringify([]);
+      if (key === 'favorites-prices') return JSON.stringify(['ビール', 'ワイン']);
+      if (key === 'visibleStations') return JSON.stringify(['83000001', '83000002']);
+      return null;
+    });
+
+    render(<Home />);
+
+    await waitFor(() => expect(screen.getByRole('tab', { name: '価格表' })).toBeInTheDocument());
+    await act(async () => {
+      fireEvent.click(screen.getByRole('tab', { name: '価格表' }));
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /シュグリシティ/ }));
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /シュグリシティ/ }));
+    });
+
+    await waitFor(() => {
+      expect(Storage.prototype.setItem).toHaveBeenCalledWith(
+        'home-price-table-sorting',
+        JSON.stringify([{ id: '83000001', desc: true }])
+      );
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('tab', { name: '商品一覧' }));
+      fireEvent.click(screen.getByRole('tab', { name: '価格表' }));
+    });
+
+    await waitFor(() => {
+      const rows = screen.getAllByRole('row').slice(1);
+      expect(within(rows[0]).getByRole('img')).toHaveAttribute('alt', 'ワイン');
+    });
+  });
+
   it('renders favorite card and toggles favorite state', async () => {
     render(<Home />);
 
