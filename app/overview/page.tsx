@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useMemo, useState, Suspense } from "react";
 
 import { CardGrid } from "@/components/cardGrid";
 import { Title } from "@/components/title";
@@ -12,6 +12,7 @@ import StationSelector from "@/components/stationSelector";
 import SortSelector from "@/components/sortSelector";
 import LastUpdateTime from "@/components/lastUpdateTime";
 import { useFilteredAndSortedItems } from "@/hooks/useFilteredAndSortedItems";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useTimeAgo } from "@/hooks/useTimeAgo";
 
 import { cityDb } from "@/lib/cityDbWithAdditions";
@@ -36,6 +37,7 @@ export default function OverviewPage() {
   });
   const [fetchTime, setFetchTime] = useState<Date | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const debouncedSearchQuery = useDebouncedValue(searchQuery);
   const [selectedStation, setSelectedStation] = useState<string | null>(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('selectedStation');
@@ -88,30 +90,32 @@ export default function OverviewPage() {
 
   const stationIds = stations ? Array.from(new Set((stations as any[]).map((s: any) => s.stationId))) : [];
 
-  const itemsByGoods: Record<string, any> = {};
+  const allItems = useMemo(() => {
+    const itemsByGoods: Record<string, any> = {};
 
-  if (stations) {
-    (stations as any[]).forEach((station: any) => {
-      if (selectedStation && station.stationId !== selectedStation) return;
+    if (stations) {
+      (stations as any[]).forEach((station: any) => {
+        if (selectedStation && station.stationId !== selectedStation) return;
 
-      station.buyItems.forEach((item: any) => {
-        const goodsJp = tradeDb[item.itemId];
-        if (!goodsJp) return;
+        station.buyItems.forEach((item: any) => {
+          const goodsJp = tradeDb[item.itemId];
+          if (!goodsJp) return;
 
-        if (!itemsByGoods[goodsJp] || itemsByGoods[goodsJp].price < item.price) {
-          itemsByGoods[goodsJp] = {
-            ...item,
-            stationId: station.stationId,
-            goodsJp
-          };
-        }
+          if (!itemsByGoods[goodsJp] || itemsByGoods[goodsJp].price < item.price) {
+            itemsByGoods[goodsJp] = {
+              ...item,
+              stationId: station.stationId,
+              goodsJp
+            };
+          }
+        });
       });
-    });
-  }
+    }
 
-  const allItems = Object.values(itemsByGoods);
+    return Object.values(itemsByGoods);
+  }, [stations, selectedStation]);
 
-  const sortedItems = useFilteredAndSortedItems(allItems, searchQuery, sortOrder);
+  const sortedItems = useFilteredAndSortedItems(allItems, debouncedSearchQuery, sortOrder);
 
   if (!stations || Object.keys(tradeDb).length === 0) return <div>Loading...</div>;
 

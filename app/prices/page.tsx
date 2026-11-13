@@ -18,6 +18,7 @@ import { ArrowUpDown, StarIcon } from "lucide-react";
 import { StationWithItems, PriceTableRow } from "@/types/trade";
 import { cityDb } from "@/lib/cityDbWithAdditions";
 import { useTimeAgo } from "@/hooks/useTimeAgo";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { buildPriceMaps, buildTableData, calculateCellValues } from "@/lib/priceTableUtils";
 
@@ -56,6 +57,7 @@ export default function PricesPage() {
   };
   const [items, setItems] = useState<StationWithItems[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const debouncedSearchQuery = useDebouncedValue(searchQuery);
   const [goodsPriceMap, setGoodsPriceMap] = useState<Record<string, Record<string, number>>>({});
   const [goodsQuotaMap, setGoodsQuotaMap] = useState<Record<string, Record<string, number>>>({});
   const [goodsIsRiseMap, setGoodsIsRiseMap] = useState<Record<string, Record<string, number>>>({});
@@ -264,7 +266,7 @@ export default function PricesPage() {
         <LastUpdateTime timeAgo={timeAgo} />
       </div>
 
-      <DataTable columns={columns} data={tableData} searchQuery={searchQuery} />
+      <DataTable columns={columns} data={tableData} searchQuery={debouncedSearchQuery} />
 
       <Footer />
     </div>

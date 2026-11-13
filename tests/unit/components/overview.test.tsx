@@ -149,6 +149,9 @@ describe('OverviewPage', () => {
     const searchInput = screen.getByPlaceholderText('商品を検索...');
     fireEvent.change(searchInput, { target: { value: 'ビール' } });
 
+    expect(searchInput).toHaveValue('ビール');
+    expect(screen.getByText('ブランデー')).toBeInTheDocument();
+
     await waitFor(() => {
       expect(screen.getByText('ビール')).toBeInTheDocument();
       expect(screen.queryByText('ブランデー')).not.toBeInTheDocument();

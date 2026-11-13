@@ -1,9 +1,16 @@
-export function useFilteredAndSortedItems(
-  allItems: any[],
+import { useMemo } from 'react';
+
+type SearchableItem = {
+  goodsJp: string;
+  price: number;
+};
+
+export function filterAndSortItems<T extends SearchableItem>(
+  allItems: T[],
   searchQuery: string,
   sortOrder: string,
-) {
-  const filteredItems = allItems.filter((item: any) => {
+): T[] {
+  const filteredItems = allItems.filter((item) => {
     return item.goodsJp.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
@@ -13,7 +20,7 @@ export function useFilteredAndSortedItems(
 
   if (sortOrder === 'price-high-grouped') {
     // ① goodsJp でグルーピング
-    const groups: Record<string, typeof allItems> = {};
+    const groups: Record<string, T[]> = {};
     for (const item of filteredItems) {
       if (!groups[item.goodsJp]) groups[item.goodsJp] = [];
       groups[item.goodsJp].push(item);
@@ -28,7 +35,7 @@ export function useFilteredAndSortedItems(
       .flat();
   }
 
-  const sortedItems = filteredItems.toSorted((a: any, b: any) => {
+  const sortedItems = filteredItems.toSorted((a, b) => {
     if (sortOrder === 'price-high') {
       return b.price - a.price;
     } else if (sortOrder === 'price-low') {
@@ -38,4 +45,15 @@ export function useFilteredAndSortedItems(
   });
 
   return sortedItems;
+}
+
+export function useFilteredAndSortedItems<T extends SearchableItem>(
+  allItems: T[],
+  searchQuery: string,
+  sortOrder: string,
+): T[] {
+  return useMemo(
+    () => filterAndSortItems(allItems, searchQuery, sortOrder),
+    [allItems, searchQuery, sortOrder],
+  );
 }
