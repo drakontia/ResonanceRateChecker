@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useMemo, useState, Suspense } from "react";
 import { CardGrid } from "@/components/cardGrid";
 import { Title } from "@/components/title";
 import Navbar from "@/components/navbar";
@@ -15,18 +15,55 @@ import PricePercentToggle from "@/components/pricePercentToggle";
 import LastUpdateTime from "@/components/lastUpdateTime";
 import { PriceValueCell } from "@/components/PriceValueCell";
 import { DataTable } from "@/components/ui/data-table";
-import { ArrowUpDown, StarIcon } from "lucide-react";
+import { ArrowUpDown, CircleHelp, StarIcon } from "lucide-react";
 import { Toggle } from "@/components/ui/toggle";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { ColumnDef } from "@tanstack/react-table";
+import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { ColumnDef, SortingState } from "@tanstack/react-table";
 import { useFilteredAndSortedItems } from "@/hooks/useFilteredAndSortedItems";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { buildPriceMaps, buildTableData, calculateCellValues } from "@/lib/priceTableUtils";
 import { useCurrentUnixSeconds } from "@/hooks/useCurrentUnixSeconds";
 
-import { cityDb } from "@/lib/cityDb";
-import { tradeDb } from "@/lib/tradeDb";
+import { cityDb } from "@/lib/cityDbWithAdditions";
+import { tradeDb } from "@/lib/tradeDbWithAdditions";
 import Image from "next/image";
+
+const PRICE_TABLE_SORTING_KEY = 'home-price-table-sorting';
+
+const readPriceTableSorting = (): SortingState => {
+  if (typeof window === 'undefined') return [];
+
+  const saved = localStorage.getItem(PRICE_TABLE_SORTING_KEY);
+  if (!saved) return [];
+
+  try {
+    const parsed: unknown = JSON.parse(saved);
+    if (!Array.isArray(parsed) || parsed.length > 1) return [];
+
+    const isValid = parsed.every((entry: unknown) =>
+      typeof entry === 'object' &&
+      entry !== null &&
+      'id' in entry &&
+      typeof entry.id === 'string' &&
+      'desc' in entry &&
+      typeof entry.desc === 'boolean'
+    );
+
+    return isValid ? parsed as SortingState : [];
+  } catch {
+    return [];
+  }
+};
 
 export default function Home() {
   const isMobile = useIsMobile();
@@ -50,6 +87,7 @@ export default function Home() {
   const [fetchTime, setFetchTime] = useState<Date | null>(null);
   const [timeAgo, setTimeAgo] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const debouncedSearchQuery = useDebouncedValue(searchQuery);
   const [selectedStation, setSelectedStation] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<string>(() => {
     if (typeof window !== 'undefined') {
@@ -57,12 +95,17 @@ export default function Home() {
     }
     return 'default';
   });
+  const [priceTableSorting, setPriceTableSorting] = useState<SortingState>(readPriceTableSorting);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('sortOrder', sortOrder);
     }
   }, [sortOrder]);
+
+  useEffect(() => {
+    localStorage.setItem(PRICE_TABLE_SORTING_KEY, JSON.stringify(priceTableSorting));
+  }, [priceTableSorting]);
   const [visibleStations, setVisibleStations] = useState<Set<string>>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('visibleStations');
@@ -182,20 +225,20 @@ export default function Home() {
   // Hooks must be called unconditionally before any early returns
   // Define getColumns first as useMemo must be at top level
 
-  const allItems = stations ? (stations as any[]).flatMap((station: any) =>
+  const allItems = useMemo(() => stations ? (stations as any[]).flatMap((station: any) =>
     (station.buyItems ?? []).map((item: any) => ({
       ...item,
       stationId: station.stationId,
       goodsJp: tradeDb[item.itemId] || item.itemId
     }))
-  ) : [];
+  ) : [], [stations]);
 
-  const favoriteItems = allItems.filter((item: any) => {
-    const matchesSearch = item.goodsJp.toLowerCase().includes(searchQuery.toLowerCase());
-    return favorites.has(`${item.stationId}-${item.goodsJp}`) && matchesSearch;
-  });
+  const favoriteItems = useMemo(
+    () => allItems.filter((item: any) => favorites.has(`${item.stationId}-${item.goodsJp}`)),
+    [allItems, favorites],
+  );
 
-  const sortedFavoriteItems = useFilteredAndSortedItems(favoriteItems, searchQuery, sortOrder);
+  const sortedFavoriteItems = useFilteredAndSortedItems(favoriteItems, debouncedSearchQuery, sortOrder);
 
   const toggleFavorite = (stationId: string, goodsJp: string) => {
     setFavorites(prev => {
@@ -241,7 +284,7 @@ export default function Home() {
   };
 
   // build price/quota/isRise/trend maps for table (same logic as prices page)
-  const maps = buildPriceMaps(stations);
+  const maps = useMemo(() => buildPriceMaps(stations), [stations]);
   const goodsPriceMap = maps.goodsPriceMap;
   const goodsQuotaMap = maps.goodsQuotaMap;
   const goodsIsRiseMap = maps.goodsIsRiseMap;
@@ -249,7 +292,10 @@ export default function Home() {
   const goodsTiMap = maps.goodsTiMap;
   const stationIds = maps.stationIds;
 
-  const tableData = buildTableData(goodsPriceMap, goodsQuotaMap, goodsIsRiseMap, goodsTrendMap, stationIds, goodsTiMap);
+  const tableData = useMemo(
+    () => buildTableData(goodsPriceMap, goodsQuotaMap, goodsIsRiseMap, goodsTrendMap, stationIds, goodsTiMap),
+    [goodsPriceMap, goodsQuotaMap, goodsIsRiseMap, goodsTrendMap, goodsTiMap, stationIds],
+  );
 
   const visibleStationIds = stationIds.filter(id => visibleStations.has(id));
 
@@ -336,7 +382,10 @@ export default function Home() {
   ];
 
   // filter tableData for prices favorites
-  const favoriteTableData = tableData.filter(row => favoritesPrices.has(row.goodsJp));
+  const favoriteTableData = useMemo(
+    () => tableData.filter(row => favoritesPrices.has(row.goodsJp)),
+    [tableData, favoritesPrices],
+  );
 
   if (!stations) return <div>Loading...</div>;
 
@@ -351,14 +400,43 @@ export default function Home() {
       </div>
       <div className="px-4">
         <Tabs value={activeTab} onValueChange={(v: string) => setActiveTab(v as 'cards' | 'favorites')}>
-          <TabsList>
-            <TabsTrigger value="cards" onClick={() => setActiveTab('cards')}>
-              商品一覧
-            </TabsTrigger>
-            <TabsTrigger value="favorites" onClick={() => setActiveTab('favorites')}>
-              価格表
-            </TabsTrigger>
-          </TabsList>
+          <div className="flex items-center justify-between gap-2">
+            <TabsList>
+              <TabsTrigger value="cards" onClick={() => setActiveTab('cards')}>
+                商品一覧
+              </TabsTrigger>
+              <TabsTrigger value="favorites" onClick={() => setActiveTab('favorites')}>
+                価格表
+              </TabsTrigger>
+            </TabsList>
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" aria-label="使い方を開く">
+                  <CircleHelp aria-hidden="true" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-md">
+                <SheetHeader>
+                  <SheetTitle>使い方</SheetTitle>
+                  <SheetDescription>商品の相場を調べて、気になる商品をホームで確認できます。</SheetDescription>
+                </SheetHeader>
+                <div className="space-y-5 px-4 pb-4 text-sm">
+                  <section className="space-y-1">
+                    <h3 className="font-semibold">商品を探す</h3>
+                    <p>商品一覧ページで商品名を検索し、ステーションや並び順で絞り込めます。</p>
+                  </section>
+                  <section className="space-y-1">
+                    <h3 className="font-semibold">お気に入りをホームに表示</h3>
+                    <p>商品一覧ページで星アイコンを押すと、お気に入りの商品がホームの「商品一覧」に表示されます。</p>
+                  </section>
+                  <section className="space-y-1">
+                    <h3 className="font-semibold">価格表を使う</h3>
+                    <p>「価格表」タブでは星アイコンで商品を登録し、表示するステーションや価格・割合表示を切り替えられます。</p>
+                  </section>
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
 
           <TabsContent value="cards">
             <div>
@@ -420,7 +498,13 @@ export default function Home() {
                 <LastUpdateTime timeAgo={timeAgo} />
               </div>
 
-              <DataTable columns={columns} data={favoriteTableData} searchQuery={searchQuery} />
+              <DataTable
+                columns={columns}
+                data={favoriteTableData}
+                searchQuery={debouncedSearchQuery}
+                sorting={priceTableSorting}
+                onSortingChange={setPriceTableSorting}
+              />
             </div>
           </TabsContent>
         </Tabs>

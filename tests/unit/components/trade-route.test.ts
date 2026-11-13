@@ -79,4 +79,46 @@ describe('Trade API Route', () => {
     expect(result.stations[0].buyItems).toHaveLength(1);
     expect(result.stations[0].buyItems[0].itemId).toBe('item3');
   });
+
+  it('交子の買値と売値をrateとsid_rate_confで換算し、他通貨は変更しないこと', async () => {
+    delete process.env.NEXT_PUBLIC_EXCLUDE_STATION_IDS;
+    delete process.env.NEXT_PUBLIC_EXCLUDE_COMMODITY_IDS;
+
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        stations: {
+          jiaozhi: {
+            rate: 1.5,
+            sid_rate_conf: 0.2,
+            currency: '11401048',
+            sell_price: { item1: { price: 100 } },
+            buy_price: { item1: { price: 200 } },
+          },
+          ironCoin: {
+            rate: 1.5,
+            sid_rate_conf: 0.2,
+            currency: '11400001',
+            sell_price: { item1: { price: 100 } },
+            buy_price: { item1: { price: 200 } },
+          },
+        },
+      }),
+    });
+
+    const response = await GET();
+    const result = await response.json();
+    const stations = result.stations as {
+      stationId: string;
+      buyItems: { price: number }[];
+      sellItems: { price: number }[];
+    }[];
+    const jiaozhiStation = stations.find((station) => station.stationId === 'jiaozhi');
+    const ironCoinStation = stations.find((station) => station.stationId === 'ironCoin');
+
+    expect(jiaozhiStation?.buyItems[0]?.price).toBeCloseTo(60);
+    expect(jiaozhiStation?.sellItems[0]?.price).toBeCloseTo(30);
+    expect(ironCoinStation?.buyItems[0]?.price).toBe(200);
+    expect(ironCoinStation?.sellItems[0]?.price).toBe(100);
+  });
 });

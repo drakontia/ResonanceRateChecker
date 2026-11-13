@@ -50,6 +50,77 @@ describe("priceTableUtils", () => {
       expect(result.goodsTiMap["item-a"]["S1"]).toBe(1_700_000_100);
       expect(result.goodsPriceMap["item-a"]["S2"]).toBe(110);
     });
+
+    it("resolves newly added Wulin and synthetic base-oil item IDs", () => {
+      const stations: StationWithItems[] = [
+        {
+          stationId: "83000046",
+          buyItems: [
+            { itemId: "84707235", price: 100 },
+            { itemId: "84707779", price: 200 },
+          ],
+          sellItems: [],
+          sell_price: {},
+          buy_price: {},
+        },
+      ];
+
+      const result = buildPriceMaps(stations);
+
+      expect(result.goodsPriceMap["革新的医薬品"]["83000046"]).toBe(100);
+      expect(result.goodsPriceMap["全合成基油"]["83000046"]).toBe(200);
+    });
+
+    it("resolves additional station item IDs without losing prices", () => {
+      const stations: StationWithItems[] = [{
+        stationId: "83000002",
+        buyItems: [
+          { itemId: "84700696", price: 100 },
+          { itemId: "84701820", price: 200 },
+          { itemId: "unknown-id", price: 300 },
+        ],
+        sellItems: [],
+        sell_price: {},
+        buy_price: {},
+      }];
+
+      const result = buildPriceMaps(stations);
+
+      expect(result.goodsPriceMap["ジン"]["83000002"]).toBe(100);
+      expect(result.goodsPriceMap["マンボウ"]["83000002"]).toBe(200);
+      expect(result.goodsPriceMap["unknown-id"]["83000002"]).toBe(300);
+    });
+
+    it("groups Wulin specialties sold at other stations under the same name", () => {
+      const stations: StationWithItems[] = [
+        {
+          stationId: "83000046",
+          buyItems: [{ itemId: "84707079", price: 100 }],
+          sellItems: [],
+          sell_price: {},
+          buy_price: {},
+        },
+        {
+          stationId: "83000014",
+          buyItems: [
+            { itemId: "84707538", price: 200 },
+            { itemId: "84707540", price: 300 },
+          ],
+          sellItems: [],
+          sell_price: {},
+          buy_price: {},
+        },
+      ];
+
+      const result = buildPriceMaps(stations);
+
+      expect(result.goodsPriceMap["明前龍井"]).toEqual({
+        "83000046": 100,
+        "83000014": 200,
+      });
+      expect(result.goodsPriceMap["龍井茶"]["83000014"]).toBe(300);
+      expect(result.goodsPriceMap["84707538"]).toBeUndefined();
+    });
   });
 
   describe("buildTableData", () => {

@@ -52,7 +52,7 @@ export default function CardMetric({
       {/* 下部: 画像と情報 */}
       <div className="flex gap-4 flex-1">
         {/* 左半分: 画像 */}
-        <div className="flex-1 flex items-center justify-center relative">
+        <div className="flex-1 lg:flex-[1.1] flex items-center justify-center relative">
           {!imageError ? (
             <>
               <Image
@@ -82,7 +82,7 @@ export default function CardMetric({
         </div>
 
         {/* 右半分: 情報 */}
-        <div className="flex-1 flex flex-col justify-center space-y-2">
+        <div className="flex-1 lg:flex-[0.9] flex flex-col justify-center space-y-2">
           <QuotaDisplay trend={trend} quota={quota} />
           <PriceDisplay price={price} />
           {timeAgo && <span className="text-xs text-gray-500 dark:text-gray-400">{timeAgo}</span>}

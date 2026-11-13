@@ -15,7 +15,7 @@ import {
   Typography,
 } from "@mui/material"
 import { ArrowUpward, ArrowDownward, TrendingUp, TrendingDown, TrendingFlat } from "@mui/icons-material"
-import { cityDb } from "@/lib/cityDb"
+import { cityDb } from "@/lib/cityDbWithAdditions"
 import { Station } from "@/types/trade"
 
 interface PriceTableProps {

@@ -1,5 +1,5 @@
 import { StationWithItems, PriceTableRow } from "@/types/trade";
-import { tradeDb } from "@/lib/tradeDb";
+import { tradeDb } from "@/lib/tradeDbWithAdditions";
 
 export interface PriceMaps {
   goodsPriceMap: Record<string, Record<string, number>>;
