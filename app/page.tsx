@@ -22,6 +22,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { useFilteredAndSortedItems } from "@/hooks/useFilteredAndSortedItems";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { buildPriceMaps, buildTableData, calculateCellValues } from "@/lib/priceTableUtils";
+import { useCurrentUnixSeconds } from "@/hooks/useCurrentUnixSeconds";
 
 import { cityDb } from "@/lib/cityDb";
 import { tradeDb } from "@/lib/tradeDb";
@@ -29,6 +30,7 @@ import Image from "next/image";
 
 export default function Home() {
   const isMobile = useIsMobile();
+  const nowUnixSeconds = useCurrentUnixSeconds();
   const [activeTab, setActiveTab] = useState<'cards' | 'favorites'>('cards');
   const [stations, setStations] = useState<any>(null);
   const [favorites, setFavorites] = useState<Set<string>>(() => {
@@ -244,9 +246,10 @@ export default function Home() {
   const goodsQuotaMap = maps.goodsQuotaMap;
   const goodsIsRiseMap = maps.goodsIsRiseMap;
   const goodsTrendMap = maps.goodsTrendMap;
+  const goodsTiMap = maps.goodsTiMap;
   const stationIds = maps.stationIds;
 
-  const tableData = buildTableData(goodsPriceMap, goodsQuotaMap, goodsIsRiseMap, goodsTrendMap, stationIds);
+  const tableData = buildTableData(goodsPriceMap, goodsQuotaMap, goodsIsRiseMap, goodsTrendMap, stationIds, goodsTiMap);
 
   const visibleStationIds = stationIds.filter(id => visibleStations.has(id));
 
@@ -324,6 +327,8 @@ export default function Home() {
             quota={quota}
             showPercent={showPercent}
             isMobile={isMobile}
+            ti={rowData[`${stationId}_ti`] as number | undefined}
+            nowUnixSeconds={nowUnixSeconds}
           />
         );
       },
@@ -389,6 +394,7 @@ export default function Home() {
                   cityData={cityDb}
                   onToggleFavorite={toggleFavorite}
                   favorites={favorites}
+                  nowUnixSeconds={nowUnixSeconds}
                 />
               </Suspense>
             </div>

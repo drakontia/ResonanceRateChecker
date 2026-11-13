@@ -13,12 +13,14 @@ import SortSelector from "@/components/sortSelector";
 import LastUpdateTime from "@/components/lastUpdateTime";
 import { useFilteredAndSortedItems } from "@/hooks/useFilteredAndSortedItems";
 import { useTimeAgo } from "@/hooks/useTimeAgo";
+import { useCurrentUnixSeconds } from "@/hooks/useCurrentUnixSeconds";
 
 import { cityDb } from "@/lib/cityDb";
 import { tradeDb } from "@/lib/tradeDb";
 
 
 export default function OverviewPage() {
+  const nowUnixSeconds = useCurrentUnixSeconds();
   const [stations, setStations] = useState<any>(null);
   const [favorites, setFavorites] = useState<Set<string>>(() => {
     if (typeof window !== 'undefined') {
@@ -166,6 +168,7 @@ export default function OverviewPage() {
           cityData={cityDb}
           onToggleFavorite={toggleFavorite}
           favorites={favorites}
+          nowUnixSeconds={nowUnixSeconds}
         />
       </Suspense>
 

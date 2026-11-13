@@ -24,7 +24,7 @@ const mockStations = [
   {
     stationId: '83000001',
     buyItems: [
-      { itemId: 'item1', price: 1000, is_rise: 1, quota: 1.2, trend: 1, is_rare: 1 },
+      { itemId: 'item1', price: 1000, is_rise: 1, quota: 1.2, trend: 1, is_rare: 1, ti: Math.floor(Date.now() / 1000) - 30 * 60 },
     ],
   },
 ];
@@ -81,6 +81,7 @@ describe('PricesPage', () => {
     render(<PricesPage />);
 
     await waitFor(() => expect(screen.getByText('ビール')).toBeInTheDocument());
+    expect(await screen.findByText(/\d+分前/)).toBeInTheDocument();
 
     const favoriteToggle = screen.getByRole('button', { name: /toggle favorite/i });
     fireEvent.click(favoriteToggle);

@@ -6,6 +6,7 @@ export interface PriceMaps {
   goodsQuotaMap: Record<string, Record<string, number>>;
   goodsIsRiseMap: Record<string, Record<string, number>>;
   goodsTrendMap: Record<string, Record<string, number>>;
+  goodsTiMap: Record<string, Record<string, number | undefined>>;
   stationIds: string[];
 }
 
@@ -17,10 +18,11 @@ export function buildPriceMaps(stations: StationWithItems[] | null): PriceMaps {
   const goodsQuotaMap: Record<string, Record<string, number>> = {};
   const goodsIsRiseMap: Record<string, Record<string, number>> = {};
   const goodsTrendMap: Record<string, Record<string, number>> = {};
+  const goodsTiMap: Record<string, Record<string, number | undefined>> = {};
   const stationIds: Set<string> = new Set();
 
   if (!stations) {
-    return { goodsPriceMap, goodsQuotaMap, goodsIsRiseMap, goodsTrendMap, stationIds: [] };
+    return { goodsPriceMap, goodsQuotaMap, goodsIsRiseMap, goodsTrendMap, goodsTiMap, stationIds: [] };
   }
 
   for (const station of stations) {
@@ -32,12 +34,15 @@ export function buildPriceMaps(stations: StationWithItems[] | null): PriceMaps {
         goodsQuotaMap[goodsJp] = {};
         goodsIsRiseMap[goodsJp] = {};
         goodsTrendMap[goodsJp] = {};
+        goodsTiMap[goodsJp] = {};
       }
       if (!goodsPriceMap[goodsJp][station.stationId] || goodsPriceMap[goodsJp][station.stationId] < item.price) {
         goodsPriceMap[goodsJp][station.stationId] = item.price;
         goodsQuotaMap[goodsJp][station.stationId] = (item.quota !== undefined ? item.quota : 0);
         goodsIsRiseMap[goodsJp][station.stationId] = (item.is_rise !== undefined ? item.is_rise : 0);
         goodsTrendMap[goodsJp][station.stationId] = (item.trend !== undefined ? item.trend : 0);
+        goodsTiMap[goodsJp][station.stationId] =
+          typeof item.ti === "number" && Number.isFinite(item.ti) ? item.ti : undefined;
       }
     }
   }
@@ -47,6 +52,7 @@ export function buildPriceMaps(stations: StationWithItems[] | null): PriceMaps {
     goodsQuotaMap,
     goodsIsRiseMap,
     goodsTrendMap,
+    goodsTiMap,
     stationIds: Array.from(stationIds),
   };
 }
@@ -59,7 +65,8 @@ export function buildTableData(
   goodsQuotaMap: Record<string, Record<string, number>>,
   goodsIsRiseMap: Record<string, Record<string, number>>,
   goodsTrendMap: Record<string, Record<string, number>>,
-  stationIds: string[]
+  stationIds: string[],
+  goodsTiMap: Record<string, Record<string, number | undefined>> = {}
 ): PriceTableRow[] {
   return Object.keys(goodsPriceMap).map(goodsJp => ({
     goodsJp,
@@ -68,8 +75,9 @@ export function buildTableData(
       acc[`${stationId}_quota`] = goodsQuotaMap[goodsJp]?.[stationId] ?? 0;
       acc[`${stationId}_is_rise`] = goodsIsRiseMap[goodsJp]?.[stationId] ?? 0;
       acc[`${stationId}_trend`] = goodsTrendMap[goodsJp]?.[stationId] ?? 0;
+      acc[`${stationId}_ti`] = goodsTiMap[goodsJp]?.[stationId];
       return acc;
-    }, {} as Record<string, number>)
+    }, {} as Record<string, number | undefined>)
   } as PriceTableRow));
 }
 
