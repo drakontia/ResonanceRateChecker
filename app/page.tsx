@@ -23,8 +23,8 @@ import { useFilteredAndSortedItems } from "@/hooks/useFilteredAndSortedItems";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { buildPriceMaps, buildTableData, calculateCellValues } from "@/lib/priceTableUtils";
 
-import { cityDb } from "@/lib/cityDb";
-import { tradeDb } from "@/lib/tradeDb";
+import { cityDb } from "@/lib/cityDbWithAdditions";
+import { tradeDb } from "@/lib/tradeDbWithAdditions";
 import Image from "next/image";
 
 export default function Home() {

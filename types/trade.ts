@@ -13,6 +13,9 @@ export type Commodity = {
 }
 
 export type Station = {
+  rate?: number;
+  sid_rate_conf?: number;
+  currency?: string;
   sell_price: Record<string, Commodity>; // 売値
   buy_price: Record<string, Commodity>;  // 買値
   recyclable?: [string];           // 素材会回収

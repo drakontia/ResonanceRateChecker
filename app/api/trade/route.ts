@@ -2,6 +2,20 @@ import { Commodity, Station } from '@/types/trade';
 import { revalidateTag } from 'next/cache';
 import { NextResponse } from 'next/server';
 
+const JIAOZHI_CURRENCY_ID = '11401048';
+
+function getPriceMultiplier(station: Station, stationId: string): number {
+  if (station.currency !== JIAOZHI_CURRENCY_ID) {
+    return 1;
+  }
+
+  if (typeof station.rate !== 'number' || typeof station.sid_rate_conf !== 'number') {
+    throw new Error(`Missing Jiaozhi price rates for station ${stationId}`);
+  }
+
+  return station.rate * station.sid_rate_conf;
+}
+
 export async function GET() {
   const url = process.env.TRADE_API_URL || "https://dummy.com/trade/";
   
@@ -43,32 +57,24 @@ export async function GET() {
     }
   }
 
-  const stations = Object.entries(data.stations).map(
-    ([stationId, station]: [string, any]) => {
-      const sellItems = Object.entries(station.sell_price as Record<string, Commodity> || {}).map(
-        ([itemId, d]) => ({
-          type: "sell" as const,
+  const stations = Object.entries(data.stations as Record<string, Station>).map(
+    ([stationId, station]) => {
+      const priceMultiplier = getPriceMultiplier(station, stationId);
+      const mapItems = (prices: Record<string, Commodity> | undefined, type: 'sell' | 'buy') =>
+        Object.entries(prices || {}).map(([itemId, item]) => ({
+          type,
           stationId,
           itemId,
-          ...d,
-        })
-      );
-
-      const buyItems = Object.entries(station.buy_price as Record<string, Commodity> || {}).map(
-        ([itemId, d]) => ({
-          type: "buy" as const,
-          stationId,
-          itemId,
-          ...d,
-        })
-      );
+          ...item,
+          price: item.price * priceMultiplier,
+        }));
 
       return {
         stationId,
         dev_degree: station.dev_degree,
         recyclable: station.recyclable,
-        sellItems: [...sellItems],
-        buyItems: [...buyItems],
+        sellItems: mapItems(station.sell_price, 'sell'),
+        buyItems: mapItems(station.buy_price, 'buy'),
       };
     }
   );
