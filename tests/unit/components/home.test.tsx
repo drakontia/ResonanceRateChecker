@@ -1,5 +1,6 @@
 import { render, screen, waitFor, fireEvent, act, within } from '@testing-library/react';
 import { vi } from 'vitest';
+import { renderToStaticMarkup } from 'react-dom/server';
 
 import Home from '@/app/page';
 
@@ -92,6 +93,18 @@ afterEach(() => {
 });
 
 describe('Home', () => {
+  it('includes the title and navigation in the initial HTML while trade data is loading', () => {
+    const { container } = render(
+      <div dangerouslySetInnerHTML={{ __html: renderToStaticMarkup(<Home />) }} />
+    );
+
+    expect(container.querySelector('h1')).toHaveTextContent('相場チェッカー');
+    expect(screen.getByRole('link', { name: '商品一覧ページ' })).toHaveAttribute('href', '/overview');
+    expect(screen.getByRole('link', { name: '価格表' })).toHaveAttribute('href', '/prices');
+    expect(screen.getByText('Loading...')).toBeInTheDocument();
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+
   it('fetches trade data without using the browser HTTP cache', async () => {
     render(<Home />);
 
