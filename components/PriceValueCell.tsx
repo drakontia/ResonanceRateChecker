@@ -62,7 +62,7 @@ export function PriceValueCell({
         {value > 0 && <TrendIcon className={`h-4 w-4 ${colorClass}`} />}
         <div className="flex flex-col items-center">
           <span>{displayValue}</span>
-          {timeAgo && <span className="text-xs text-gray-500 dark:text-gray-400">{timeAgo}</span>}
+          {timeAgo && <span className="text-[10px] text-gray-500 dark:text-gray-400">{timeAgo}</span>}
         </div>
       </div>
     );
@@ -75,7 +75,7 @@ export function PriceValueCell({
           {value > 0 && <TrendIcon className={`h-4 w-4 ${colorClass}`} />}
           <div className="flex flex-col items-center">
             <span>{displayValue}</span>
-            {timeAgo && <span className="text-xs text-gray-500 dark:text-gray-400">{timeAgo}</span>}
+            {timeAgo && <span className="text-[10px] text-gray-500 dark:text-gray-400">{timeAgo}</span>}
           </div>
         </div>
       </TooltipTrigger>
