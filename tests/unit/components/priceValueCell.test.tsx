@@ -83,4 +83,23 @@ describe("PriceValueCell", () => {
     expect(screen.getByText("999")).toBeInTheDocument();
     expect(screen.getByText("83%")).toBeInTheDocument();
   });
+
+  it.each([true, false])("renders the relative time with a smaller font on mobile=%s", (isMobile) => {
+    render(
+      <PriceValueCell
+        value={999}
+        displayValue="999"
+        colorClass="text-red-400"
+        isHighlighted={false}
+        trend={0}
+        quota={0.83}
+        showPercent={false}
+        isMobile={isMobile}
+        ti={0}
+        nowUnixSeconds={60}
+      />
+    );
+
+    expect(screen.getByText("1分前")).toHaveClass("text-[10px]");
+  });
 });
