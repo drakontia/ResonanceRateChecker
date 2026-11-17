@@ -100,6 +100,6 @@ describe("PriceValueCell", () => {
       />
     );
 
-    expect(screen.getByText("1分前")).toHaveClass("text-[10px]");
+    expect(screen.getByText("1分前")).toHaveClass("text-[10px]", "whitespace-nowrap");
   });
 });

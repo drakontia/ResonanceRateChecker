@@ -317,15 +317,15 @@ export default function Home() {
         // Table in Home should reflect Prices page favorites
         const isFavorite = favoritesPrices.has(goodsJp);
         return (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 md:gap-2">
             <Image
               src={`/images/items/${goodsJp}.png`}
               alt={goodsJp}
               width={32}
               height={32}
-              className="object-contain"
+              className="object-contain shrink-0 w-6 h-6 md:w-8 md:h-8"
             />
-            <div className="font-medium">{goodsJp}</div>
+            <div className="font-medium text-xs md:text-sm whitespace-normal break-words min-w-0">{goodsJp}</div>
             <Toggle
               pressed={isFavorite}
               onPressedChange={() => toggleFavoritePrices(goodsJp)}

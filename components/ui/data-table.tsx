@@ -73,7 +73,7 @@ export function DataTable<TData, TValue>({
               {headerGroup.headers.map((header) => (
                 <TableHead
                   key={header.id}
-                  className={header.id === "goodsJp" ? "sticky top-0 left-0 bg-background min-w-[150px] z-20 border-r" : "sticky top-0 w-32 bg-background z-10"}
+                  className={header.id === "goodsJp" ? "sticky top-0 left-0 bg-background w-24 min-w-24 md:w-40 md:min-w-40 px-2 z-20 border-r" : "sticky top-0 w-20 md:w-24 px-1 bg-background z-10"}
                   style={{ boxShadow: '0 2px 2px -1px rgba(0, 0, 0, 0.1)' }}
                 >
                   {header.isPlaceholder
@@ -94,7 +94,7 @@ export function DataTable<TData, TValue>({
                 {row.getVisibleCells().map((cell) => (
                   <TableCell
                     key={cell.id}
-                    className={cell.column.id === "goodsJp" ? "sticky left-0 bg-background z-10" : "bg-background"}
+                    className={cell.column.id === "goodsJp" ? "sticky left-0 bg-background z-10 whitespace-normal break-words px-2" : "bg-background px-1"}
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
